@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { UnauthorizedError, ForbiddenError } from '../utils/error-handler';
 import { db } from '../db';
-import { users, UserRole } from '../db/schema';
+import { users, UserRole } from '../../shared/schema';
 import { eq } from 'drizzle-orm';
 
 // Extended interface for Request with user property
