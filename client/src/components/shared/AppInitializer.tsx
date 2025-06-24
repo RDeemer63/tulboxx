@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { LoadingSpinner } from "./LoadingSpinner";
 import { initializeMockApi } from "@/lib/mock-api";
 import { setApiMode } from "@/lib/api-config";
+import { featureFlags as defaultFlags } from "@/shared/featureFlags";
+import NetworkStatusIndicator from "@/components/shared/NetworkStatusIndicator";
 
 interface AppInitializerProps {
   children: React.ReactNode;
@@ -19,20 +21,54 @@ interface AppInitializerProps {
 export const AppInitializer: React.FC<AppInitializerProps> = ({ children }) => {
   const [isInitialized, setIsInitialized] = useState(false);
   const [initError, setInitError] = useState<Error | null>(null);
+  const [isOnline, setIsOnline] = useState<boolean>(navigator.onLine);
+  const [unsupportedBrowser, setUnsupportedBrowser] = useState(false);
 
   useEffect(() => {
     const initializeApp = async () => {
       try {
-        // Initialize mock API in development mode
+        /* ---------------------------------------------------------- */
+        /* 1. Network connectivity                                    */
+        /* ---------------------------------------------------------- */
+        setIsOnline(navigator.onLine);
+
+        /* ---------------------------------------------------------- */
+        /* 2. Feature-flag bootstrap                                  */
+        /* ---------------------------------------------------------- */
+        try {
+          const raw = localStorage.getItem("tulboxx_feature_flags");
+          if (raw) {
+            const overrides = JSON.parse(raw);
+            Object.assign(defaultFlags, overrides);
+          }
+        } catch {
+          /* ignore parse errors */
+        }
+
+        /* ---------------------------------------------------------- */
+        /* 3. Mock API (dev only)                                     */
+        /* ---------------------------------------------------------- */
         if (import.meta.env.DEV) {
           try {
             await initializeMockApi();
             console.log("Mock API initialized successfully");
           } catch (error) {
             console.warn("Failed to initialize mock API:", error);
-            // Ensure we fall back to real API
             setApiMode("live");
           }
+        }
+
+        /* ---------------------------------------------------------- */
+        /* 4. Persisted user data                                     */
+        /* ---------------------------------------------------------- */
+        try {
+          const persisted = localStorage.getItem("tulboxx_user_profile");
+          if (persisted) {
+            // no-op for now – future providers will read this
+            console.debug("Loaded persisted user profile");
+          }
+        } catch {
+          /* ignore */
         }
         
         // Any other app initialization can go here
@@ -47,6 +83,32 @@ export const AppInitializer: React.FC<AppInitializerProps> = ({ children }) => {
     initializeApp();
   }, []);
 
+  /* -------------------------------------------------------------- */
+  /* Browser capability check                                       */
+  /* -------------------------------------------------------------- */
+  useEffect(() => {
+    const checkBrowserSupport = () => {
+      const hasFetch = typeof fetch !== "undefined";
+      const hasSW = "serviceWorker" in navigator;
+      return hasFetch && hasSW;
+    };
+    setUnsupportedBrowser(!checkBrowserSupport());
+  }, []);
+
+  /* -------------------------------------------------------------- */
+  /* Online / offline listener                                      */
+  /* -------------------------------------------------------------- */
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, []);
+
   if (initError) {
     return (
       <div className="flex h-screen items-center justify-center p-4">
@@ -54,6 +116,7 @@ export const AppInitializer: React.FC<AppInitializerProps> = ({ children }) => {
           <h2 className="mb-4 text-xl font-bold text-red-600 dark:text-red-400">
             Application Initialization Failed
           </h2>
+          <NetworkStatusIndicator variant="badge" className="mb-2" />
           <p className="mb-4 text-gray-700 dark:text-gray-300">
             We encountered an error while loading the application:
           </p>
@@ -72,10 +135,43 @@ export const AppInitializer: React.FC<AppInitializerProps> = ({ children }) => {
   }
 
   if (!isInitialized) {
-    return <LoadingSpinner variant="fullPage" size="lg" text="Initializing application..." />;
+    return (
+      <>
+        {/* Network / offline status */}
+        <NetworkStatusIndicator
+          variant="prominent"
+          showOfflineOnly
+          className="fixed bottom-2 left-2 z-50"
+        />
+
+        {/* Unsupported browser banner */}
+        {unsupportedBrowser && (
+          <div className="fixed top-0 inset-x-0 z-50 bg-yellow-400 py-2 text-center text-xs font-semibold text-black">
+            Your browser is missing some features required for the best Tulboxx
+            experience. Please update your browser.
+          </div>
+        )}
+
+        <LoadingSpinner
+          variant="fullPage"
+          size="lg"
+          text="Initializing application..."
+        />
+      </>
+    );
   }
 
-  return <>{children}</>;
+  return (
+    <>
+      {unsupportedBrowser && (
+        <div className="fixed top-0 inset-x-0 z-50 bg-yellow-400 py-2 text-center text-xs font-semibold text-black">
+          Your browser is missing some features required for the best Tulboxx
+          experience. Please update your browser.
+        </div>
+      )}
+      {children}
+    </>
+  );
 };
 
 export default AppInitializer;
