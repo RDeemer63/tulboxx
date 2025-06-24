@@ -1,6 +1,6 @@
 import express from "express";
 import { z } from "zod";
-import { leadRepository } from "../repositories/LeadRepository";
+import { leadRepository } from "../repositories/leadRepository";
 import {
   insertLeadSchema,
   insertLeadEventSchema,
