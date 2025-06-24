@@ -1,0 +1,147 @@
+AI AGENT PROMPT — BUILD TULBOXX
+ The Ultimate All-in-One Platform for Trade-Service Businesses
+
+1. Mission & Vision
+Create TULBOXX, a simple yet powerful hub that lets any trade-service professional—solo painter, handyman, or a 50-person electrical firm—run the whole business from one screen. Replace the usual stack of four-plus apps (Jobber, Joist, schedulers, social tools, spreadsheets) without adding complexity. TULBOXX must feel so intuitive that it is the first tab a tradesperson opens every morning.
+
+2. Success Criteria (“done” looks like…)
+• At least 90 percent of new users engage with one or more core modules (roles, estimates, jobs, CRM, or payments) during their first 14 days.
+ • New account to first estimate sent in under fifteen minutes.
+ • Eighty percent of beta users retire three or more external tools after sixty days.
+ • All client-facing text (estimates, invoices, emails, social posts) scores ninety-five percent or higher “sounds professional” in post-use surveys when AI-polish is applied.
+
+3. Non-Goals (v1 will not include)
+• In-house payroll-tax filing.
+ • Two-way calendar sync.
+ • Advanced PPC-ad management.
+
+4. Core Modules & Must-Have Requirements
+User Roles & Permissions
+ • Default roles: Owner, Admin, Estimator, Field Tech, Marketer.
+ • Admin can fine-tune view / create / edit / send / export rights per module.
+Estimating & Invoicing — ForgeFlow™ Engine
+ • Two estimate modes:
+ – Residential Project Estimate (single price, plain-English scope)
+ – Trade Breakdown Estimate (line-item detail for commercial or government bids)
+ • OpenAI-driven scope generation from editable prompt templates.
+ • Attach images and diagrams, add upsell options, capture digital signatures.
+ • One-tap “Convert to Invoice”, schedule deposits or partials.
+AI Text-Polish Everywhere
+ • Every client-visible field shows a magic-wand icon.
+ • Tap → choose tone (Friendly, Bold, Expert) → regenerate or accept.
+Job Scheduling & Field Operations
+ • Views: Calendar, Kanban, Timeline.
+ • Drag-drop crews and equipment, track progress, clock-in/out with GPS or geofence.
+CRM & Automations
+ • Lead capture by form, phone, or manual entry.
+ • Auto-tag by service, urgency, and ZIP.
+ • Library of automations (follow-ups, review requests, cold-lead nurture).
+ • Editable pipeline stages.
+Social Media Publisher
+ • Direct API to Facebook, Instagram, Google Business Profile.
+ • Post wizard: select type → answer prompts → AI writes caption → schedule or publish.
+ • Manual reminder flow for TikTok and LinkedIn.
+ • Basic engagement analytics and AI reply suggestions.
+Payments
+ • User chooses processor: Stripe, Square, PayPal, QuickBooks Payments, or record cash.
+ • Handle deposits, partials, overdue reminders, exportable ledger.
+Payroll & Time Tracking
+ • GPS / geofence clock-ins, missed check-in alerts, admin approval, CSV / QBO / Gusto export.
+Dashboards & Reporting
+ • Real-time pipeline, revenue vs goal, close rate, top services, lead sources, team productivity, social metrics.
+Onboarding & Trade Templates
+ • Trade selected at signup loads preset catalog items, estimate templates, and post ideas.
+ • Import wizard for CSV, QBO, or Jobber exports.
+
+5. Tech Stack & Integrations — iOS & Android
+Mobile Apps
+ • React Native + Expo Router (TypeScript) — one codebase, native performance, over-the-air updates.
+ • Native modules: expo-camera, expo-location (GPS / geofence), expo-filesystem, expo-notifications.
+Web Admin / Desktop
+ • Next.js + React Native for Web inside a Turborepo — about ninety percent UI code shared with mobile.
+Backend
+ • Node.js (NestJS) + PostgreSQL (Prisma).
+Auth
+ • Supabase Auth or Clerk (works on web and native).
+CI / CD
+ • EAS Build & Submit for App Store and Play Store.
+ • GitHub Actions → Vercel for web preview → EAS for mobile builds.
+Third-Party APIs
+ • OpenAI, Google Maps, Stripe, Meta Graph, Google Business Profile, QuickBooks, and others as listed in modules.
+
+6. UI / UX Principles
+Mobile-first, then desktop
+ • Core actions (send estimate, clock in, upload photo) must be thumb-friendly on a six-inch phone in bright daylight.
+Three-tap rule
+ • Any daily task should take no more than three taps from the home screen.
+Card-based layout
+ • Jobs, leads, and invoices display as uniform cards with color badges; swipe or long-press for quick actions.
+Plain-language labels
+ • Use everyday terms (“Job Notes”, “Send Invoice”), never jargon.
+Contrast & readability
+ • Meet WCAG AA. Fonts: 18 px body, 24 px section headers, 32 px titles (relative units).
+Feedback & micro-interactions
+ • Button press ripple at 150 ms. Success toast in green (“Estimate sent”). Error toast in red with clear next step.
+Offline resilience
+ • Core screens cache locally; failed network requests queue and retry. Show “Offline — saving locally” banner.
+Consistent iconography
+ • Material Icons or Lucide; use the same magic-wand icon for AI assist.
+Dark mode optional
+ • Respect OS setting; toggle in user preferences.
+Accessibility
+ • Keyboard-navigable, alt text for images, large targets.
+Native-app additions
+ • Bottom navigation bar (Home, Jobs, Leads, Schedule, More).
+ • Light haptic tick on key actions; swipe gestures (left to mark complete, right to call client).
+ • Offline-first data layer with React Query and SQLite cache; grey “Offline — changes queued” banner.
+ • In-app camera with markup tools; compress images to two megabytes or less before upload.
+ • Push notifications (job reassigned, estimate approved, payment received) deep-link to the right screen.
+ • All tap targets at least forty-eight by forty-eight density-independent pixels; respect dynamic type scaling.
+
+7. Security & Data Protection
+Encryption everywhere
+ • TLS 1.3 for all traffic.
+ • AES-256 at rest for databases and object storage; customer-uploaded media stored in an encrypted S3/R2 bucket.
+ • Key rotation every 90 days via the cloud-provider KMS.
+Secrets management
+ • API keys, DB strings, and signing secrets live only in the provider’s secret store (Vercel/Expo EAS/Supabase).
+ • Never commit secrets to Git.
+Auth & session safety
+ • Supabase/Clerk tokens (JWT) with 30-minute expiry and sliding refresh.
+ • Optional MFA for Owner/Admin roles (TOTP or passkey).
+ • Role-based access enforced server-side—never rely on front-end checks alone.
+Least privilege defaults
+ • New users get the lowest necessary role; all create/update/delete operations require an explicit permission check.
+Data residency & compliance
+ • Primary region: us-east-1; read replicas in us-west-2.
+ • GDPR/CCPA capable: data-subject export and delete endpoints within 30 days.
+ • Target SOC 2 Type II and ISO 27001 readiness by GA.
+Logging & audit trail
+ • Append-only audit log for auth events, estimate edits, invoice sends, and payment actions.
+ • Logs stream to a separate write-only store (e.g., CloudWatch + Loki) and retain for 365 days.
+Mobile-specific precautions
+ • Offline cache stored in encrypted SQLite with device keychain/Keystore.
+ • Push notifications never contain PII—only a generic message (“Invoice paid”) with deep link.
+Backups & disaster recovery
+ • Point-in-time DB recovery enabled (min. seven-day window).
+ • Nightly encrypted object-store snapshots retained 30 days.
+ • Quarterly fail-over test to alternate region.
+Vulnerability management
+ • Dependabot + Snyk scanning on every merge.
+ • Quarterly OWASP MASVS / ASVS review; block deploys on critical CVEs.
+__________________________________________________________________________
+
+8. Deliverables for This Agent
+• Product Spec — user stories, acceptance criteria, wireframes for every module.
+ • Architecture Diagram — services, data flows, integrations.
+ • Sprint Plan — prioritized backlog for a twelve-week MVP (two-week sprints).
+ • Risk Log — top ten risks with mitigations.
+ • Beta-Launch Checklist — data migration steps, support docs, feedback loops.
+
+9. Guiding Principles
+• Clarity over configuration — smart defaults that just work, but power users can drill down.
+ • Mobile-first field workflow.
+ • Write once, reuse everywhere — one source of truth for client and job data.
+ • AI assists, never overrides — user stays in control.
+ • Build it as tradespeople would: direct, no fluff, rock-solid.
+

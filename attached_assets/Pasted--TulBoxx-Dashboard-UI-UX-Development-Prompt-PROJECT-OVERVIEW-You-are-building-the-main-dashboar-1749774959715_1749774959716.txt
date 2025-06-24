@@ -1,0 +1,498 @@
+# TulBoxx Dashboard UI/UX Development Prompt
+
+## PROJECT OVERVIEW
+You are building the main dashboard interface for TulBoxx, a field service management application for blue-collar service businesses (HVAC, plumbing, electrical, contracting). This dashboard has been carefully designed and refined through extensive user research and design iterations.
+
+## 🚨 CRITICAL REQUIREMENTS - READ FIRST
+
+### DESIGN COMPLIANCE
+- **FOLLOW THE EXACT DESIGN SPECIFICATIONS PROVIDED**
+- **DO NOT MODIFY THE LAYOUT, COLORS, OR COMPONENT HIERARCHY**
+- **DO NOT ADD FEATURES NOT SPECIFIED IN THIS PROMPT**
+- **ASK FOR APPROVAL BEFORE MAKING ANY DESIGN CHANGES**
+
+Previous development attempts deviated from approved designs, causing significant rework. You MUST stick to these exact specifications.
+
+---
+
+## TARGET AUDIENCE & DESIGN PHILOSOPHY
+
+### User Profile
+- **Primary users**: Blue-collar service professionals (contractors, HVAC techs, plumbers)
+- **Demographics**: Predominantly male, mobile-first usage, work-glove friendly interfaces
+- **Environment**: Outdoor job sites, varying lighting conditions, mobile devices in trucks/vans
+- **Priorities**: Trust, efficiency, innovation - professional tool that can handle their workload
+
+### Design Principles
+- **Professional appearance**: Looks like premium business software, not consumer apps
+- **High contrast**: Readable in bright outdoor conditions
+- **Large touch targets**: Usable with work gloves
+- **Mobile-first**: Responsive design prioritizing mobile experience
+- **Action-oriented**: Clear CTAs and business intelligence
+
+---
+
+## COLOR SCHEME & BRANDING
+
+### Primary Colors
+```css
+:root {
+  /* Dark Theme (Default) */
+  --bg-primary: #0f172a;           /* Deep navy background */
+  --bg-secondary: #1e293b;         /* Card backgrounds */
+  --bg-tertiary: #334155;          /* Interactive elements */
+  --text-primary: #ffffff;         /* Primary text */
+  --text-secondary: #cbd5e1;       /* Secondary text */
+  --text-muted: #94a3b8;          /* Muted text */
+  --border-color: #334155;         /* Borders */
+  --accent-orange: #f97316;        /* Primary brand color */
+  --accent-orange-dark: #ea580c;   /* Hover states */
+}
+
+/* Light Theme */
+[data-theme="light"] {
+  --bg-primary: #f8fafc;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #e2e8f0;
+  --text-primary: #1e293b;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
+  --border-color: #e2e8f0;
+}
+```
+
+### Brand Guidelines
+- **Primary Brand Color**: Construction Orange (#f97316) - evokes safety vests, work trucks
+- **Background**: Dark theme default (reduces eye strain, battery usage)
+- **Typography**: Sans-serif, heavy font weights (600-800), high contrast
+- **Gradients**: Subtle gradients for premium feel, not flashy
+- **Borders**: Rounded corners (6-12px), solid borders for definition
+
+---
+
+## LAYOUT ARCHITECTURE
+
+### Header
+```
+[Logo: TULBOXX] ———————————————————— [Theme Toggle] [Avatar: JD] [John Doe]
+```
+
+### Main Content Structure
+```
+1. Welcome Section (Blue gradient background)
+   - Title: "Dashboard"
+   - Subtitle: "Welcome back! Here's what's happening with your business today."
+   - Role Switcher: [John (admin)] [Mike (technician)] [Mike (technician)] [Sarah (manager)] [Test (assistant)]
+
+2. Quick Actions (4-column grid)
+   - Schedule Job | Add Customer | Create Estimate | AI Assistant
+
+3. Sales Pipeline (Horizontal flow)
+   - Leads → Quotes → Active Jobs → Invoiced
+   - Each stage shows count + dollar value
+
+4. Business Metrics (3-column grid)
+   - Weekly Revenue Goal (with progress bar)
+   - Today's Schedule (with stats)
+   - Technician Status (real-time)
+   - Outstanding Receivables (aging breakdown)
+
+5. Bottom Section (2-column grid)
+   - Upcoming Jobs (forward-looking)
+   - Recent Jobs (historical)
+```
+
+---
+
+## COMPONENT SPECIFICATIONS
+
+### 1. Header Component
+```css
+.header {
+  background: var(--header-bg);
+  backdrop-filter: blur(10px);
+  border-bottom: 2px solid var(--border-color);
+  padding: 16px 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+```
+
+**Elements:**
+- Logo: "TULBOXX" (uppercase, 24px, 800 weight, orange)
+- Theme toggle: 40x40px button with sun/moon SVG icons
+- User info: Avatar (40x40px, orange gradient) + name
+
+### 2. Welcome Section
+```css
+.welcome-section {
+  background: linear-gradient(135deg, #1e40af, #1e3a8a);
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 32px;
+  border: 1px solid #3b82f6;
+}
+```
+
+**Content:**
+- Title: "Dashboard" (28px, 700 weight, white)
+- Subtitle: Welcome message (16px, rgba(255,255,255,0.8))
+- Role buttons: Small pills with active state (orange background)
+
+### 3. Quick Actions Grid
+**Layout**: 4 cards in responsive grid (min-width: 280px)
+
+**Card Structure:**
+```css
+.action-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 24px;
+  text-align: center;
+  cursor: pointer;
+  position: relative;
+}
+
+.action-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--accent-orange), var(--accent-orange-dark));
+}
+```
+
+**Icons**: Professional SVG icons (24px), orange gradient background circles
+**Actions**: Schedule Job, Add Customer, Create Estimate, AI Assistant
+
+### 4. Sales Pipeline
+**Layout**: Horizontal scrolling cards with arrows
+
+**Pipeline Stages:**
+1. **Leads**: 8 count, $2,400 value (Blue gradient icon)
+2. **Quotes**: 5 count, $8,200 value (Purple gradient icon)  
+3. **Active Jobs**: 19 count, $45,600 value (Green gradient icon)
+4. **Invoiced**: 12 count, $28,400 value (Orange gradient icon)
+
+**Visual**: Cards connected with arrows (→), color-coded icons, bold values
+
+### 5. Business Metrics Grid
+**Layout**: 3-4 responsive cards (min-width: 350px)
+
+#### A. Weekly Revenue Goal
+```
+[Chart Icon] Weekly Revenue Goal
+             June 9-15, 2025
+
+$8,240 of $12,000
+[Progress Bar: 68.7% filled]
+68.7% • 2 days remaining
+```
+
+#### B. Today's Schedule  
+```
+[Calendar Icon] Today's Schedule
+                Thursday, June 12
+
+[0 Jobs Today] [$.00 Revenue]
+No jobs scheduled for today
+[Schedule Job Button]
+```
+
+#### C. Technician Status
+```
+[User Icon] Technician Status
+            Real-time
+
+● Mike Johnson - En route to job #1847
+● Sarah Wilson - On-site - HVAC repair  
+● Test Assistant - Available for dispatch
+```
+
+#### D. Outstanding Receivables
+```
+[Clock Icon] Outstanding Receivables  
+             Aging Report
+
+Current     $15,200
+30+ days    $2,400  (Yellow)
+60+ days    $800    (Red)
+────────────────────
+Total: $18,400
+```
+
+### 6. Bottom Section Cards
+
+#### A. Upcoming Jobs
+```
+Upcoming Jobs                    View All →
+
+[13 Jun] Plumbing Installation     Mike J.
+         Johnson Residence • 9:00 AM
+         $1,250
+
+[14 Jun] HVAC Maintenance         Sarah W.
+         Smith Office • 2:00 PM
+         $450
+
+[15 Jun] Emergency Repair         Available  
+         Downtown Restaurant • 10:00 AM
+         $800
+```
+
+#### B. Recent Jobs
+```
+Recent Jobs                      View All →
+
+Test Job Workflow               [IN PROGRESS]
+Michelle Jackson • $500.00 • 6/11/2025
+
+Test Job Workflow               [IN PROGRESS] 
+Michelle Jackson • $500.00 • 6/11/2025
+
+Emergency Foundation Repair     [PENDING]
+Robert Brown • $8500.00 • 6/4/2025
+```
+
+---
+
+## RESPONSIVE BEHAVIOR
+
+### Breakpoints
+```css
+/* Mobile */
+@media (max-width: 768px) {
+  - Quick Actions: 2x2 grid
+  - Pipeline: Horizontal scroll
+  - Business Metrics: 1 column
+  - Bottom Section: 1 column
+}
+
+@media (max-width: 480px) {
+  - Quick Actions: 1 column
+  - Pipeline stages: Smaller padding
+  - All metrics: Full width
+}
+```
+
+### Touch Targets
+- Minimum 44px height for all interactive elements
+- Padding: 12-24px for comfortable thumb/glove interaction
+- Hover states with 2-4px lift animation
+
+---
+
+## INTERACTIVE STATES
+
+### Hover Effects
+```css
+.action-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 32px rgba(249, 115, 22, 0.3);
+  border-color: var(--accent-orange);
+}
+```
+
+### Button States
+- **Default**: Orange gradient background
+- **Hover**: Darker orange gradient + translateY(-1px)
+- **Active**: Slightly compressed scale(0.98)
+
+### Theme Toggle
+- **Dark mode**: Moon icon visible
+- **Light mode**: Sun icon visible
+- **Transition**: Smooth 0.3s ease transition
+- **Storage**: Use in-memory variable (no localStorage in artifacts)
+
+---
+
+## ICONS & GRAPHICS
+
+### Icon Library
+Use professional SVG icons (stroke-based, consistent weight):
+
+**Quick Actions:**
+- Schedule Job: Calendar with lines
+- Add Customer: User with plus/search
+- Create Estimate: Document with lines  
+- AI Assistant: Brain/search with checkmark
+
+**Business Metrics:**
+- Revenue: Activity/trending-up line
+- Schedule: Calendar grid
+- Technicians: Users icon
+- Receivables: Clock/time icon
+
+**Pipeline:**
+- Leads: Users group
+- Quotes: Document
+- Jobs: Wrench/hammer tool
+- Invoiced: Dollar sign
+
+### Icon Specifications
+- **Size**: 20px default, 24px large
+- **Stroke**: 2px weight
+- **Style**: Rounded linecap/linejoin
+- **Color**: Current color (inherits from parent)
+
+---
+
+## DATA VISUALIZATION
+
+### Progress Bars
+```css
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background: var(--bg-tertiary);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #059669, #34d399);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+```
+
+### Status Indicators
+- **Active**: Green dot (●) #10b981
+- **Available**: Blue dot (●) #3b82f6  
+- **In Progress**: Orange badge with black text
+- **Pending**: Gray badge with white text
+
+---
+
+## ANIMATION & TRANSITIONS
+
+### Standard Transitions
+```css
+/* Default for all interactive elements */
+transition: all 0.2s ease;
+
+/* Hover lift effect */
+transform: translateY(-4px);
+
+/* Loading states */
+transition: opacity 0.3s ease;
+
+/* Theme switching */
+transition: all 0.3s ease;
+```
+
+### Micro-interactions
+- Card hover: 4px lift + orange glow shadow
+- Button hover: 1px lift + darker gradient
+- Progress bars: Smooth width animation (0.3s)
+- Status dots: Subtle pulse animation for active states
+
+---
+
+## TECHNICAL IMPLEMENTATION NOTES
+
+### Framework Requirements
+- **React** with functional components and hooks
+- **CSS-in-JS** or **CSS Modules** for styling
+- **Responsive grid** system (CSS Grid preferred)
+- **SVG icons** (inline, not icon fonts)
+
+### State Management
+```javascript
+// Theme state
+const [theme, setTheme] = useState('dark');
+
+// Dashboard data
+const [dashboardData, setDashboardData] = useState({
+  pipeline: { leads: 8, quotes: 5, jobs: 19, invoiced: 12 },
+  revenue: { current: 8240, target: 12000 },
+  schedule: { todayJobs: 0, todayRevenue: 0 },
+  technicians: [...],
+  upcomingJobs: [...],
+  recentJobs: [...]
+});
+```
+
+### Performance Requirements
+- **Mobile-first loading**: Critical CSS inline, progressive enhancement
+- **Image optimization**: WebP with fallbacks, responsive images
+- **Animations**: Use `transform` and `opacity` only (GPU accelerated)
+- **Bundle size**: Keep JavaScript under 200KB gzipped
+
+---
+
+## ACCESSIBILITY REQUIREMENTS
+
+### WCAG 2.1 AA Compliance
+- **Color contrast**: 4.5:1 minimum ratio
+- **Focus indicators**: Visible 2px orange outline
+- **Keyboard navigation**: Tab order follows visual hierarchy
+- **Screen readers**: Proper ARIA labels and roles
+
+### Implementation
+```jsx
+// Example button with accessibility
+<button 
+  aria-label="Schedule new job"
+  className="action-card"
+  onKeyPress={handleKeyPress}
+  tabIndex={0}
+>
+  <div className="action-icon" aria-hidden="true">
+    <CalendarIcon />
+  </div>
+  <div className="action-title">Schedule Job</div>
+</button>
+```
+
+---
+
+## TESTING REQUIREMENTS
+
+### Device Testing
+- **Mobile**: iPhone 12/13/14, Samsung Galaxy S21/S22
+- **Tablet**: iPad Air, Android tablets 10"
+- **Desktop**: 1920x1080, 1440x900, 2560x1440
+
+### Browser Support
+- **Modern browsers**: Chrome 90+, Firefox 88+, Safari 14+, Edge 90+
+- **Mobile browsers**: iOS Safari, Chrome Mobile, Samsung Internet
+
+### Usability Testing
+- **Glove testing**: Verify touch targets work with work gloves
+- **Lighting testing**: Confirm readability in bright outdoor conditions
+- **Performance testing**: Loading under 3G network conditions
+
+---
+
+## FINAL CHECKLIST
+
+Before considering the dashboard complete, verify:
+
+- [ ] **Design matches specifications exactly** (colors, spacing, typography)
+- [ ] **All components responsive** across mobile/tablet/desktop
+- [ ] **Theme toggle functional** with smooth transitions
+- [ ] **Icons professional and consistent** (SVG, proper sizing)
+- [ ] **Touch targets minimum 44px** for mobile usability
+- [ ] **Color contrast meets WCAG AA** standards
+- [ ] **Loading performance under 3 seconds** on 3G
+- [ ] **Keyboard navigation functional** throughout interface
+- [ ] **Business data displays correctly** (pipeline, metrics, jobs)
+- [ ] **Orange brand color used consistently** as accent
+
+## PROHIBITED MODIFICATIONS
+- **DO NOT** change the color scheme or typography
+- **DO NOT** rearrange the component hierarchy  
+- **DO NOT** add features not specified in this prompt
+- **DO NOT** use emoji or icon fonts instead of SVG
+- **DO NOT** implement localStorage (use in-memory state)
+- **DO NOT** deviate from the mobile-first responsive behavior
+
+---
+
+**Remember**: This dashboard represents weeks of user research, design iteration, and stakeholder feedback. Any deviation from these specifications must be approved before implementation. The goal is a professional, trustworthy interface that blue-collar service professionals will want to use daily.

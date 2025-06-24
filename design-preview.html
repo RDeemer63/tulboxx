@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tulboxx CRM - Premium UI/UX Preview</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* -------------------------------------------------------------------------- */
+        /* Tulboxx CRM Design System - "Blue Steel" - Salesforce-inspired            */
+        /* -------------------------------------------------------------------------- */
+        :root {
+            /* Colors - Salesforce-inspired palette */
+            --color-primary: 207 100% 41%; /* #0070D2 - Salesforce blue */
+            --color-primary-hover: 209 100% 36%; /* #005BB5 - Darker blue */
+            --color-accent: 29 100% 50%; /* #FF8C00 - Orange accent */
+            --color-success: 142 76% 36%; /* #22C55E - Green */
+            --color-warning: 38 92% 50%; /* #F59E0B - Yellow */
+            --color-danger: 358 75% 59%; /* #EF4444 - Red */
+            --color-info: 199 89% 48%; /* #06B6D4 - Cyan */
+
+            /* Grayscale */
+            --color-slate-900: 222 47% 11%; /* #0F172A - Dark slate for sidebar */
+            --color-slate-800: 222 47% 15%; /* #1E293B - Slightly lighter slate */
+            --color-slate-700: 215 25% 27%; /* #334155 - Medium slate */
+            --color-slate-200: 214 32% 91%; /* #E2E8F0 - Light gray for borders */
+            --color-slate-100: 210 40% 98%; /* #F1F5F9 - Very light gray for backgrounds */
+            --color-slate-50: 210 40% 98%; /* #F8FAFC - Almost white */
+            --color-white: 0 0% 100%; /* #FFFFFF - Pure white */
+
+            /* Typography */
+            --font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            --letter-spacing-tight: -0.025em;
+
+            /* Spacing (multiples of 4px) */
+            --spacing-1: 0.25rem;   /* 4px */
+            --spacing-2: 0.5rem;    /* 8px */
+            --spacing-3: 0.75rem;   /* 12px */
+            --spacing-4: 1rem;      /* 16px */
+            --spacing-6: 1.5rem;    /* 24px */
+            --spacing-8: 2rem;      /* 32px */
+            --spacing-12: 3rem;     /* 48px */
+
+            /* Shadows */
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+
+            /* Border radius */
+            --radius-sm: 0.125rem;  /* 2px */
+            --radius: 0.25rem;      /* 4px */
+            --radius-md: 0.375rem;  /* 6px */
+            --radius-lg: 0.5rem;    /* 8px */
+            --radius-xl: 0.75rem;   /* 12px */
+        }
+
+        /* Global styles */
+        body {
+            font-family: var(--font-family);
+            background-color: hsl(var(--color-slate-100));
+            color: hsl(var(--color-slate-900));
+            line-height: 1.5;
+            margin: 0;
+            padding: 0;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            letter-spacing: var(--letter-spacing-tight);
+            font-weight: 600;
+            color: hsl(var(--color-slate-900));
+            margin: 0;
+        }
+
+        /* Layout components */
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 260px;
+            background-color: hsl(var(--color-slate-900));
+            color: hsl(var(--color-white));
+            flex-shrink: 0;
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 30;
+        }
+
+        .sidebar-header {
+            height: 64px;
+            display: flex;
+            align-items: center;
+            padding: 0 var(--spacing-4);
+            border-bottom: 1px solid hsla(var(--color-slate-700), 0.5);
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-3);
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background-color: hsl(var(--color-primary));
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: hsl(var(--color-white));
+            font-weight: bold;
+            font-size: 1.25rem;
+        }
+
+        .logo-text {
+            font-weight: 700;
+            font-size: 1.25rem;
+            color: hsl(var(--color-white));
+        }
+
+        .sidebar-nav {
+            padding: var(--spacing-3);
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: var(--spacing-2) var(--spacing-3);
+            border-radius: var(--radius-md);
+            color: hsla(var(--color-white), 0.7);
+            margin-bottom: var(--spacing-1);
+            transition: all 0.2s ease;
+            font-weight: 500;
+            text-decoration: none;
+        }
+
+        .nav-item:hover {
+            background-color: hsla(var(--color-white), 0.1);
+            color: hsl(var(--color-white));
+        }
+
+        .nav-item.active {
+            background-color: hsl(var(--color-primary));
+            color: hsl(var(--color-white));
+        }
+
+        .nav-icon {
+            width: 20px;
+            height: 20px;
+            margin-right: var(--spacing-3);
+            flex-shrink: 0;
+        }
+
+        .main-content {
+            flex: 1;
+            margin-left: 260px;
+        }
+
+        .header {
+            height: 64px;
+            background-color: hsl(var(--color-white));
+            border-bottom: 1px solid hsl(var(--color-slate-200));
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 var(--spacing-6);
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .page-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-3);
+        }
+
+        .avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: hsl(var(--color-primary));
+            color: hsl(var(--color-white));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+
+        .content-container {
+            padding: var(--spacing-6);
+        }
+
+        /* Components */
+        .section {
+            margin-bottom: var(--spacing-8);
+        }
+
+        .section-title {
+            margin-bottom: var(--spacing-4);
+            font-size: 1.5rem;
+            color: hsl(var(--color-slate-900));
+        }
+
+        .card {
+            background-color: hsl(var(--color-white));
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow);
+            padding: var(--spacing-6);
+            margin-bottom: var(--spacing-4);
+        }
+
+        .card-header {
+            margin-bottom: var(--spacing-4);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: var(--spacing-4);
+        }
+
+        .color-swatch {
+            border-radius: var(--radius-md);
+            height: 80px;
+            margin-bottom: var(--spacing-2);
+        }
+
+        .color-label {
+            font-weight: 600;
+            margin-bottom: var(--spacing-1);
+        }
+
+        .color-value {
+            font-family: monospace;
+            font-size: 0.875rem;
+            color: hsl(var(--color-slate-700));
+        }
+
+        .button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 var(--spacing-4);
+            height: 40px;
+            border-radius: var(--radius-md);
+            font-weight: 500;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .button-primary {
+            background-color: hsl(var(--color-primary));
+            color: hsl(var(--color-white));
+        }
+
+        .button-primary:hover {
+            background-color: hsl(var(--color-primary-hover));
+        }
+
+        .button-secondary {
+            background-color: hsl(var(--color-white));
+            color: hsl(var(--color-slate-900));
+            border: 1px solid hsl(var(--color-slate-200));
+        }
+
+        .button-secondary:hover {
+            background-color: hsl(var(--color-slate-50));
+        }
+
+        .button-accent {
+            background-color: hsl(var(--color-accent));
+            color: hsl(var(--color-white));
+        }
+
+        .button-accent:hover {
+            background-color: hsl(29 100% 45%);
+        }
+
+        .button-danger {
+            background-color: hsl(var(--color-danger));
+            color: hsl(var(--color-white));
+        }
+
+        .button-danger:hover {
+            background-color: hsl(358 75% 54%);
+        }
+
+        .button-icon {
+            width: 20px;
+            height: 20px;
+            margin-right: var(--spacing-2);
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0 var(--spacing-2);
+            height: 22px;
+            border-radius: 11px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .badge-primary {
+            background-color: hsla(var(--color-primary), 0.1);
+            color: hsl(var(--color-primary));
+        }
+
+        .badge-success {
+            background-color: hsla(var(--color-success), 0.1);
+            color: hsl(var(--color-success));
+        }
+
+        .badge-warning {
+            background-color: hsla(var(--color-warning), 0.1);
+            color: hsl(var(--color-warning));
+        }
+
+        .badge-danger {
+            background-color: hsla(var(--color-danger), 0.1);
+            color: hsl(var(--color-danger));
+        }
+
+        .input {
+            width: 100%;
+            height: 40px;
+            padding: 0 var(--spacing-3);
+            border: 1px solid hsl(var(--color-slate-200));
+            border-radius: var(--radius-md);
+            font-family: var(--font-family);
+            font-size: 1rem;
+            color: hsl(var(--color-slate-900));
+            transition: all 0.2s ease;
+        }
+
+        .input:focus {
+            outline: none;
+            border-color: hsl(var(--color-primary));
+            box-shadow: 0 0 0 2px hsla(var(--color-primary), 0.2);
+        }
+
+        .textarea {
+            width: 100%;
+            padding: var(--spacing-2) var(--spacing-3);
+            border: 1px solid hsl(var(--color-slate-200));
+            border-radius: var(--radius-md);
+            font-family: var(--font-family);
+            font-size: 1rem;
+            color: hsl(var(--color-slate-900));
+            transition: all 0.2s ease;
+            resize: vertical;
+        }
+
+        .textarea:focus {
+            outline: none;
+            border-color: hsl(var(--color-primary));
+            box-shadow: 0 0 0 2px hsla(var(--color-primary), 0.2);
+        }
+
+        .form-group {
+            margin-bottom: var(--spacing-4);
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: var(--spacing-2);
+            font-weight: 500;
+            color: hsl(var(--color-slate-900));
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--spacing-4);
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        .table th {
+            text-align: left;
+            padding: var(--spacing-3) var(--spacing-4);
+            border-bottom: 1px solid hsl(var(--color-slate-200));
+            font-weight: 600;
+            color: hsl(var(--color-slate-700));
+            font-size: 0.875rem;
+        }
+
+        .table td {
+            padding: var(--spacing-3) var(--spacing-4);
+            border-bottom: 1px solid hsl(var(--color-slate-200));
+        }
+
+        .table tr:hover td {
+            background-color: hsla(var(--color-slate-100), 0.5);
+        }
+
+        /* Mobile navigation */
+        .mobile-nav {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: hsl(var(--color-white));
+            border-top: 1px solid hsl(var(--color-slate-200));
+            padding: var(--spacing-2) 0;
+            z-index: 40;
+        }
+
+        .mobile-nav-items {
+            display: flex;
+            justify-content: space-around;
+        }
+
+        .mobile-nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: hsl(var(--color-slate-700));
+            font-size: 0.75rem;
+            text-decoration: none;
+        }
+
+        .mobile-nav-item.active {
+            color: hsl(var(--color-primary));
+        }
+
+        .mobile-nav-icon {
+            width: 24px;
+            height: 24px;
+            margin-bottom: var(--spacing-1);
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .sidebar {
+                display: none;
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .mobile-nav {
+                display: block;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">
+                    <div class="logo-icon">T</div>
+                    <span class="logo-text">TULBOXX</span>
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="9" cy="7" r="4"></circle>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                    </svg>
+                    Leads
+                </a>
+                <a href="#" class="nav-item">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="8" y1="12" x2="16" y2="12"></line>
+                        <line x1="12" y1="8" x2="12" y2="16"></line>
+                    </svg>
+                    Estimates
+                </a>
+                <a href="#" class="nav-item">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                        <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                    </svg>
+                    Jobs
+                </a>
+                <a href="#" class="nav-item">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                        <polyline points="10 9 9 9 8 9"></polyline>
+                    </svg>
+                    Work
+                </a>
+                <a href="#" class="nav-item">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="2" y="5" width="20" height="14" rx="2" ry="2"></rect>
+                        <line x1="2" y1="10" x2="22" y2="10"></line>
+                    </svg>
+                    Billing
+                </a>
+                <a href="#" class="nav-item">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="20" x2="18" y2="10"></line>
+                        <line x1="12" y1="20" x2="12" y2="4"></line>
+                        <line x1="6" y1="20" x2="6" y2="14"></line>
+                    </svg>
+                    Insights
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="header">
+                <h1 class="page-title">Tulboxx CRM Design System</h1>
+                <div class="user-menu">
+                    <div class="avatar">JD</div>
+                    <span>John Doe</span>
+                </div>
+            </header>
+
+            <div class="content-container">
+                <!-- Color Palette Section -->
+                <section class="section">
+                    <h2 class="section-title">Color Palette</h2>
+                    <div class="color-grid">
+                        <div>
+                            <div class="color-swatch" style="background-color: hsl(207, 100%, 41%);"></div>
+                            <div class="color-label">Primary</div>
+                            <div class="color-value">#0070D2</div>
+                        </div>
+                        <div>
+                            <div class="color-swatch" style="background-color: hsl(29, 100%, 50%);"></div>
+                            <div class="color-label">Accent</div>
+                            <div class="color-value">#FF8C00</div>
+                        </div>
+                        <div>
+                            <div class="color-swatch" style="background-color: hsl(142, 76%, 36%);"></div>
+                            <div class="color-label">Success</div>
+                            <div class="color-value">#22C55E</div>
+                        </div>
+                        <div>
+                            <div class="color-swatch" style="background-color: hsl(38, 92%, 50%);"></div>
+                            <div class="color-label">Warning</div>
+                            <div class="color-value">#F59E0B</div>
+                        </div>
+                        <div>
+                            <div class="color-swatch" style="background-color: hsl(358, 75%, 59%);"></div>
+                            <div class="color-label">Danger</div>
+                            <div class="color-value">#EF4444</div>
+                        </div>
+                        <div>
+                            <div class="color-swatch" style="background-color: hsl(199, 89%, 48%);"></div>
+                            <div class="color-label">Info</div>
+                            <div class="color-value">#06B6D4</div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Typography Section -->
+                <section class="section">
+                    <h2 class="section-title">Typography</h2>
+                    <div class="card">
+                        <h1 style="font-size: 1.875rem; line-height: 2.25rem; font-weight: 700; margin-bottom: 1rem;">Heading 1 - 30px/700 - Module titles</h1>
+                        <h2 style="font-size: 1.5rem; line-height: 2rem; font-weight: 600; margin-bottom: 1rem;">Heading 2 - 24px/600 - Section headings</h2>
+                        <h3 style="font-size: 1.25rem; line-height: 1.75rem; font-weight: 600; margin-bottom: 1rem;">Heading 3 - 20px/600 - Card titles</h3>
+                        <p style="font-size: 1rem; line-height: 1.5; margin-bottom: 1rem;">Body Large - 16px/400 - This is body text in the larger size, used for most content in the application. It provides good readability while maintaining a clean, professional appearance.</p>
+                        <p style="font-size: 0.875rem; line-height: 1.5; margin-bottom: 1rem;">Body Small - 14px/400 - This smaller body text is used for secondary information, captions, and areas where space is limited but readability is still important.</p>
+                        <p style="font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace; font-size: 0.875rem; line-height: 1.5;">Mono - 12-14px - Used for numbers, code, and tabular data: $1,234.56</p>
+                    </div>
+                </section>
+
+                <!-- Buttons Section -->
+                <section class="section">
+                    <h2 class="section-title">Buttons</h2>
+                    <div class="card">
+                        <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 2rem;">
+                            <button class="button button-primary">Primary Button</button>
+                            <button class="button button-secondary">Secondary Button</button>
+                            <button class="button button-accent">Accent Button</button>
+                            <button class="button button-danger">Danger Button</button>
+                        </div>
+                        <div>
+                            <h3 style="font-size: 1.125rem; margin-bottom: 1rem;">Button with Icon</h3>
+                            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                                <button class="button button-primary">
+                                    <svg class="button-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                                    </svg>
+                                    Add New
+                                </button>
+                                <button class="button button-secondary">
+                                    <svg class="button-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                        <polyline points="7 10 12 15 17 10"></polyline>
+                                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                                    </svg>
+                                    Download
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Cards Section -->
+                <section class="section">
+                    <h2 class="section-title">Cards</h2>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem;">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Basic Card</h3>
+                            </div>
+                            <p style="margin-bottom: 1.5rem;">This is a simple card with basic styling. Cards are used to group related content and actions.</p>
+                            <button class="button button-primary">Action</button>
+                        </div>
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Card with Badge</h3>
+                                <span class="badge badge-success">Active</span>
+                            </div>
+                            <p style="margin-bottom: 1.5rem;">This card includes a status badge and demonstrates how to combine elements.</p>
+                            <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
+                                <button class="button button-secondary">Cancel</button>
+                                <button class="button button-primary">Save</button>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div style="display: flex; align-items: center; margin-bottom: 1rem;">
+                                <div class="avatar" style="margin-right: 1rem;">JD</div>
+                                <div>
+                                    <h3 class="card-title">John Doe</h3>
+                                    <p style="color: hsl(var(--color-slate-700)); font-size: 0.875rem;">john.doe@example.com</p>
+                                </div>
+                            </div>
+                            <p style="margin-bottom: 1rem;">Customer since Jan 2023</p>
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span class="badge badge-primary">5 Jobs</span>
+                                <button class="button button-secondary">View Profile</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Forms Section -->
+                <section class="section">
+                    <h2 class="section-title">Forms</h2>
+                    <div class="card">
+                        <form>
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label class="form-label" for="first-name">First Name</label>
+                                    <input type="text" id="first-name" class="input" placeholder="John">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="last-name">Last Name</label>
+                                    <input type="text" id="last-name" class="input" placeholder="Doe">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="email">Email</label>
+                                <input type="email" id="email" class="input" placeholder="john.doe@example.com">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="message">Message</label>
+                                <textarea id="message" class="textarea" rows="4" placeholder="Enter your message here..."></textarea>
+                            </div>
+                            <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
+                                <button type="button" class="button button-secondary">Cancel</button>
+                                <button type="submit" class="button button-primary">Submit</button>
+                            </div>
+                        </form>
+                    </div>
+                </section>
+
+                <!-- Tables Section -->
+                <section class="section">
+                    <h2 class="section-title">Tables</h2>
+                    <div class="card" style="padding: 0; overflow: hidden;">
+                        <div style="overflow-x: auto;">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>Status</th>
+                                        <th>Last Activity</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td style="font-weight: 500;">John Doe</td>
+                                        <td>john.doe@example.com</td>
+                                        <td><span class="badge badge-success">Active</span></td>
+                                        <td>Today, 10:30 AM</td>
+                                        <td>
+                                            <button class="button button-secondary" style="height: 32px; padding: 0 0.75rem;">
+                                                Edit
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="font-weight: 500;">Jane Smith</td>
+                                        <td>jane.smith@example.com</td>
+                                        <td><span class="badge badge-warning">Pending</span></td>
+                                        <td>Yesterday, 3:45 PM</td>
+                                        <td>
+                                            <button class="button button-secondary" style="height: 32px; padding: 0 0.75rem;">
+                                                Edit
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="font-weight: 500;">Bob Johnson</td>
+                                        <td>bob.johnson@example.com</td>
+                                        <td><span class="badge badge-danger">Inactive</span></td>
+                                        <td>Jun 12, 2023</td>
+                                        <td>
+                                            <button class="button button-secondary" style="height: 32px; padding: 0 0.75rem;">
+                                                Edit
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- Mobile Navigation -->
+    <nav class="mobile-nav">
+        <div class="mobile-nav-items">
+            <a href="#" class="mobile-nav-item active">
+                <svg class="mobile-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="9" cy="7" r="4"></circle>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+                <span>Leads</span>
+            </a>
+            <a href="#" class="mobile-nav-item">
+                <svg class="mobile-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="8" y1="12" x2="16" y2="12"></line>
+                    <line x1="12" y1="8" x2="12" y2="16"></line>
+                </svg>
+                <span>Estimates</span>
+            </a>
+            <a href="#" class="mobile-nav-item">
+                <svg class="mobile-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                    <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                </svg>
+                <span>Jobs</span>
+            </a>
+            <a href="#" class="mobile-nav-item">
+                <svg class="mobile-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="20" x2="18" y2="10"></line>
+                    <line x1="12" y1="20" x2="12" y2="4"></line>
+                    <line x1="6" y1="20" x2="6" y2="14"></line>
+                </svg>
+                <span>Insights</span>
+            </a>
+        </div>
+    </nav>
+</body>
+</html>

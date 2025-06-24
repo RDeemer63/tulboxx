@@ -1,0 +1,67 @@
+⚠️ Important Context
+TULBOXX is an existing web application built for service businesses like painters, landscapers, excavators, and contractors.
+Most core features — including estimating, invoicing, time tracking, and user account management — are already built.
+
+You are working within the current system, extending the existing Business Profile settings section — not recreating the app. The frontend is built with React/Next.js, and the backend uses [insert current DB: Firebase, Supabase, or Replit DB].
+
+Maintain all existing design patterns, styling, data architecture, and routing logic.
+
+🎯 Goal
+Enhance the current Business Profile section to:
+
+Improve AI personalization across estimates, invoices, posts, and messaging.
+
+Store trust-building business details (e.g., license number, certifications).
+
+Power auto-populated templates and footer data across the app.
+
+🧩 New Fields to Add (Grouped for Clarity)
+1. Basic Company Info (already present – just ensure formatting is clean)
+Business Name
+
+Owner/Manager Name
+
+Email Address
+
+Phone Number
+
+Address (Street, City, State, ZIP)
+
+Website URL
+
+2. Trust & Credentials
+These fields build customer trust and allow AI to mention qualifications automatically.
+
+License Number(s) (text or multi-input)
+
+Bonded & Insured (toggle + optional description)
+
+Certifications (multi-tag or free text: e.g., EPA, ISA, ICPI)
+
+Year Founded (numeric)
+
+Business Structure (dropdown: Sole Prop, LLC, Corp, etc.)
+
+3. AI Personalization Settings
+These settings influence how the AI generates content, estimates, and messaging.
+
+Preferred Estimate Style:
+
+Radio Options: [Flat Project Price] [Line Items] [Grouped by Category]
+
+Service Area:
+
+Free text input (e.g., “Tri-County Area” or “Within 50 miles of Des Moines”)
+
+Company Tagline or Motto (short text)
+
+Short Company Bio (max 400 characters)
+
+4. Defaults & Legal Footers
+Used across estimates, invoices, contracts, and shared documents.
+
+Legal Footer Text (textarea)
+
+Terms & Conditions (textarea)
+
+Default Signature Name (text)

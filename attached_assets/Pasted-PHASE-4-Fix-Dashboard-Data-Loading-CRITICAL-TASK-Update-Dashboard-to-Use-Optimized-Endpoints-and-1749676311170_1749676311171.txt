@@ -1,0 +1,117 @@
+PHASE 4: Fix Dashboard Data Loading (CRITICAL)
+TASK: Update Dashboard to Use Optimized Endpoints and Pagination
+The dashboard is still loading ALL customers, jobs, estimates, and invoices which will crash with real data. Update it to use the new optimized endpoints.
+Update client/src/pages/dashboard.tsx - Replace the data fetching section:
+Find this section in the dashboard (around lines 80-120):
+typescript// OLD: These load ALL data and will crash with real customers
+const { data: estimates = [] } = useQuery<(Estimate & { customer: Customer })[]>({
+  queryKey: ["/api/estimates"],
+  enabled: isAdmin || isManager,
+});
+
+const { data: customers = [] } = useQuery<Customer[]>({
+  queryKey: ["/api/customers"],
+  enabled: isAdmin || isManager,
+});
+
+const { data: allJobs = [] } = useQuery<(Job & { customer: Customer })[]>({
+  queryKey: ["/api/jobs"],
+  enabled: isAdmin || isManager,
+});
+
+const { data: invoices = [] } = useQuery<(Invoice & { customer: Customer })[]>({
+  queryKey: ["/api/invoices"],
+  enabled: isAdmin || isManager,
+});
+REPLACE with this optimized version:
+typescript// FIXED: Use optimized dashboard endpoint that only gets counts
+const { data: dashboardStats, isLoading: dashboardStatsLoading } = useQuery({
+  queryKey: ["/api/dashboard/stats-optimized"],
+  enabled: isAdmin || isManager,
+  staleTime: 2 * 60 * 1000, // 2 minutes - dashboard stats can be slightly stale
+});
+
+// FIXED: Only load first page of data for dashboard previews
+const { data: estimatesPage } = useQuery<{
+  data: (Estimate & { customer: Customer })[];
+  pagination: any;
+}>({
+  queryKey: ["/api/estimates", { page: 1, limit: 10 }],
+  enabled: isAdmin || isManager,
+});
+
+const { data: customersPage } = useQuery<{
+  data: Customer[];
+  pagination: any;
+}>({
+  queryKey: ["/api/customers", { page: 1, limit: 10 }],
+  enabled: isAdmin || isManager,
+});
+
+const { data: allJobsPage } = useQuery<{
+  data: (Job & { customer: Customer })[];
+  pagination: any;
+}>({
+  queryKey: ["/api/jobs", { page: 1, limit: 10 }],
+  enabled: isAdmin || isManager,
+});
+
+const { data: invoicesPage } = useQuery<{
+  data: (Invoice & { customer: Customer })[];
+  pagination: any;
+}>({
+  queryKey: ["/api/invoices", { page: 1, limit: 10 }],
+  enabled: isAdmin || isManager,
+});
+
+// Extract data arrays from paginated responses
+const estimates = estimatesPage?.data || [];
+const customers = customersPage?.data || [];
+const allJobs = allJobsPage?.data || [];
+const invoices = invoicesPage?.data || [];
+Then find this section (around lines 140-160) and REPLACE:
+typescript// OLD: Heavy client-side calculations on ALL data
+const pendingEstimates = Array.isArray(estimates) ? estimates.filter(e => e.status === "draft" || e.status === "sent").length : 0;
+const totalEstimateValue = Array.isArray(estimates) ? estimates.reduce((sum, e) => sum + (parseFloat(e.totalAmount?.toString() || "0")), 0) : 0;
+const completedJobsValue = Array.isArray(allJobs) ? allJobs
+  .filter(j => j.status === "completed")
+  .reduce((sum, j) => sum + (parseFloat(j.estimatedValue?.toString() || "0")), 0) : 0;
+const activeJobsCount = Array.isArray(allJobs) ? allJobs.filter(j => j.status === "scheduled" || j.status === "in_progress").length : 0;
+WITH this optimized version:
+typescript// FIXED: Use server-calculated stats instead of client-side calculations
+const pendingEstimates = dashboardStats?.pendingEstimates || 0;
+const totalEstimateValue = estimates.reduce((sum, e) => sum + (parseFloat(e.totalAmount?.toString() || "0")), 0); // Only on preview data
+const completedJobsValue = dashboardStats?.totalRevenue || 0;
+const activeJobsCount = dashboardStats?.activeJobs || 0;
+const totalCustomersCount = dashboardStats?.totalCustomers || 0;
+
+// Only calculate expensive operations on limited preview data
+const thisWeekJobs = useMemo(() => {
+  return allJobs.filter(j => {
+    if (!j.scheduledDate) return false;
+    const jobDate = new Date(j.scheduledDate);
+    const now = new Date();
+    const weekStart = new Date(now.setDate(now.getDate() - now.getDay()));
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekStart.getDate() + 6);
+    return jobDate >= weekStart && jobDate <= weekEnd;
+  }).length;
+}, [allJobs]);
+Find the stats cards section and UPDATE the customer count:
+typescript// In the stats cards section, replace:
+<div className="text-2xl font-bold text-gray-900">
+  {customers.length}
+</div>
+
+// WITH:
+<div className="text-2xl font-bold text-gray-900">
+  {totalCustomersCount}
+</div>
+Add these imports at the top:
+typescriptimport { useMemo } from "react";
+Also add this loading state fix:
+typescript// Replace statsLoading with dashboardStatsLoading in the revenue card:
+<div className="text-2xl font-bold text-gray-900">
+  {dashboardStatsLoading ? "..." : formatCurrency(completedJobsValue)}
+</div>
+

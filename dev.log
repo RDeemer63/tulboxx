@@ -1,0 +1,45 @@
+
+> rest-express@1.0.0 dev
+> NODE_ENV=development tsx server/index.ts
+
+10:23:02 PM [express] serving on port 3001
+Browserslist: browsers data (caniuse-lite) is 8 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+[vite:css] @import must precede all other statements (besides @charset or empty @layer)
+12 |  -------------------------------------------------------------------*/
+13 |  
+14 |  @import "./styles/design-system.css";
+   |  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+15 |  
+16 |  /*
+10:23:15 PM [express] GET /api/employees 304 in 84ms :: []
+10:23:15 PM [express] GET /api/business-profile 200 in 93ms
+10:23:16 PM [express] GET /api/business-profile 200 in 8ms
+10:26:13 PM [express] GET /api/business-profile 200 in 92ms
+10:26:13 PM [express] GET /api/employees 304 in 92ms :: []
+10:26:14 PM [express] GET /api/business-profile 200 in 22ms
+10:27:07 PM [express] GET /api/employees 304 in 47ms :: []
+10:27:07 PM [express] GET /api/business-profile 200 in 77ms
+10:27:08 PM [express] GET /api/business-profile 200 in 21ms
+10:27:31 PM [vite] hmr update /src/index.css?v=qI7gvlePedK1FVnaOOd45
+10:27:31 PM [vite] Internal server error: [postcss] /Users/rdeemer/Desktop/Tulboxx-1 2/client/src/index.css:17:23: Unclosed string
+  Plugin: vite:css
+  File: /Users/rdeemer/Desktop/Tulboxx-1 2/client/src/index.css:17:22
+  15 |  
+  16 |  Let me check the server status and logs to see what's happening.</reasoning>
+  17 |  I see the issue! There's a CSS syntax error in the `index.css` file. Let me check and fix it:
+     |                        ^
+      at Input.error (/Users/rdeemer/Desktop/Tulboxx-1 2/node_modules/postcss/lib/input.js:106:16)
+      at unclosed (/Users/rdeemer/Desktop/Tulboxx-1 2/node_modules/postcss/lib/tokenize.js:45:17)
+      at Object.nextToken (/Users/rdeemer/Desktop/Tulboxx-1 2/node_modules/postcss/lib/tokenize.js:157:15)
+      at Parser.other (/Users/rdeemer/Desktop/Tulboxx-1 2/node_modules/postcss/lib/parser.js:419:30)
+      at Parser.parse (/Users/rdeemer/Desktop/Tulboxx-1 2/node_modules/postcss/lib/parser.js:470:16)
+      at parse (/Users/rdeemer/Desktop/Tulboxx-1 2/node_modules/postcss/lib/parse.js:11:12)
+      at new LazyResult (/Users/rdeemer/Desktop/Tulboxx-1 2/node_modules/postcss/lib/lazy-result.js:133:16)
+      at Processor.process (/Users/rdeemer/Desktop/Tulboxx-1 2/node_modules/postcss/lib/processor.js:53:14)
+      at compileCSS (/Users/rdeemer/Desktop/Tulboxx-1 2/node_modules/vite/dist/node/chunks/dep-CHZK6zbr.js:36898:59)
+      at async TransformPluginContext.transform (/Users/rdeemer/Desktop/Tulboxx-1 2/node_modules/vite/dist/node/chunks/dep-CHZK6zbr.js:36171:11)
+      at async PluginContainer.transform (/Users/rdeemer/Desktop/Tulboxx-1 2/node_modules/vite/dist/node/chunks/dep-CHZK6zbr.js:49098:18)
+      at async loadAndTransform (/Users/rdeemer/Desktop/Tulboxx-1 2/node_modules/vite/dist/node/chunks/dep-CHZK6zbr.js:51931:27)
+      at async viteTransformMiddleware (/Users/rdeemer/Desktop/Tulboxx-1 2/node_modules/vite/dist/node/chunks/dep-CHZK6zbr.js:62031:24)

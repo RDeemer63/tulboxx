@@ -1,0 +1,354 @@
+PHASE 6: Service Layer & Clean API Patterns (Final Foundation)
+TASK: Create Service Layer and Clean Route Handlers
+Create the business logic layer that uses repositories and provides clean patterns for the AI to follow on all future features.
+Create server/services/BaseService.ts:
+typescriptimport { PaginatedResult } from "../repositories/BaseRepository";
+
+export interface ServiceResponse<T> {
+  success: boolean;
+  data?: T;
+  error?: string;
+  message?: string;
+}
+
+export interface ValidationError {
+  field: string;
+  message: string;
+}
+
+export class ServiceError extends Error {
+  constructor(
+    message: string,
+    public statusCode: number = 500,
+    public validationErrors?: ValidationError[]
+  ) {
+    super(message);
+    this.name = 'ServiceError';
+  }
+}
+
+export abstract class BaseService {
+  protected createSuccessResponse<T>(data: T, message?: string): ServiceResponse<T> {
+    return {
+      success: true,
+      data,
+      message,
+    };
+  }
+
+  protected createErrorResponse(error: string, statusCode: number = 500): ServiceResponse<never> {
+    return {
+      success: false,
+      error,
+    };
+  }
+
+  protected validateRequired(data: Record<string, any>, requiredFields: string[]): ValidationError[] {
+    const errors: ValidationError[] = [];
+    
+    for (const field of requiredFields) {
+      if (!data[field] || (typeof data[field] === 'string' && data[field].trim() === '')) {
+        errors.push({
+          field,
+          message: `${field} is required`,
+        });
+      }
+    }
+    
+    return errors;
+  }
+
+  protected validateEmail(email: string): boolean {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  }
+
+  protected validatePhone(phone: string): boolean {
+    const phoneRegex = /^\(?([0-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})$/;
+    return phoneRegex.test(phone.replace(/\s/g, ''));
+  }
+}
+Create server/services/CustomerService.ts:
+typescriptimport { BaseService, ServiceError, ValidationError } from "./BaseService";
+import { CustomerRepository } from "../repositories/CustomerRepository";
+import { type Customer, type InsertCustomer } from "@shared/schema";
+import { PaginationOptions, PaginatedResult } from "../repositories/BaseRepository";
+
+export class CustomerService extends BaseService {
+  constructor(private customerRepo: CustomerRepository) {
+    super();
+  }
+
+  async createCustomer(data: InsertCustomer): Promise<Customer> {
+    // Validate required fields
+    const validationErrors = this.validateRequired(data, ['firstName', 'lastName']);
+    
+    // Validate email if provided
+    if (data.email && !this.validateEmail(data.email)) {
+      validationErrors.push({
+        field: 'email',
+        message: 'Invalid email format',
+      });
+    }
+
+    // Validate phone if provided
+    if (data.phone && !this.validatePhone(data.phone)) {
+      validationErrors.push({
+        field: 'phone',
+        message: 'Invalid phone number format',
+      });
+    }
+
+    if (validationErrors.length > 0) {
+      throw new ServiceError('Validation failed', 400, validationErrors);
+    }
+
+    // Check for duplicate email
+    if (data.email) {
+      const existingCustomer = await this.customerRepo.findByEmail(data.email);
+      if (existingCustomer) {
+        throw new ServiceError('Customer with this email already exists', 409);
+      }
+    }
+
+    // Create customer
+    try {
+      const customer = await this.customerRepo.create(data);
+      return customer;
+    } catch (error) {
+      throw new ServiceError('Failed to create customer', 500);
+    }
+  }
+
+  async updateCustomer(id: number, data: Partial<InsertCustomer>): Promise<Customer> {
+    // Check if customer exists
+    const existingCustomer = await this.customerRepo.findById(id);
+    if (!existingCustomer) {
+      throw new ServiceError('Customer not found', 404);
+    }
+
+    // Validate email if being updated
+    if (data.email && !this.validateEmail(data.email)) {
+      throw new ServiceError('Invalid email format', 400);
+    }
+
+    // Validate phone if being updated
+    if (data.phone && !this.validatePhone(data.phone)) {
+      throw new ServiceError('Invalid phone number format', 400);
+    }
+
+    // Check for duplicate email if email is being changed
+    if (data.email && data.email !== existingCustomer.email) {
+      const duplicateCustomer = await this.customerRepo.findByEmail(data.email);
+      if (duplicateCustomer) {
+        throw new ServiceError('Customer with this email already exists', 409);
+      }
+    }
+
+    try {
+      const updatedCustomer = await this.customerRepo.update(id, data);
+      if (!updatedCustomer) {
+        throw new ServiceError('Failed to update customer', 500);
+      }
+      return updatedCustomer;
+    } catch (error) {
+      throw new ServiceError('Failed to update customer', 500);
+    }
+  }
+
+  async getCustomer(id: number): Promise<Customer> {
+    const customer = await this.customerRepo.findById(id);
+    if (!customer) {
+      throw new ServiceError('Customer not found', 404);
+    }
+    return customer;
+  }
+
+  async getCustomers(options: PaginationOptions): Promise<PaginatedResult<Customer>> {
+    try {
+      return await this.customerRepo.findPaginated(options);
+    } catch (error) {
+      throw new ServiceError('Failed to fetch customers', 500);
+    }
+  }
+
+  async deleteCustomer(id: number): Promise<void> {
+    const customer = await this.customerRepo.findById(id);
+    if (!customer) {
+      throw new ServiceError('Customer not found', 404);
+    }
+
+    const success = await this.customerRepo.delete(id);
+    if (!success) {
+      throw new ServiceError('Failed to delete customer', 500);
+    }
+  }
+
+  async getCustomersByStatus(status: string): Promise<Customer[]> {
+    try {
+      return await this.customerRepo.findByStatus(status);
+    } catch (error) {
+      throw new ServiceError('Failed to fetch customers by status', 500);
+    }
+  }
+}
+Create server/services/JobService.ts:
+typescriptimport { BaseService, ServiceError } from "./BaseService";
+import { JobRepository, JobWithCustomer } from "../repositories/JobRepository";
+import { CustomerRepository } from "../repositories/CustomerRepository";
+import { type Job, type InsertJob } from "@shared/schema";
+import { PaginationOptions, PaginatedResult } from "../repositories/BaseRepository";
+
+export class JobService extends BaseService {
+  constructor(
+    private jobRepo: JobRepository,
+    private customerRepo: CustomerRepository
+  ) {
+    super();
+  }
+
+  async createJob(data: InsertJob): Promise<JobWithCustomer> {
+    // Validate required fields
+    const validationErrors = this.validateRequired(data, ['customerId', 'title', 'serviceType']);
+    
+    if (validationErrors.length > 0) {
+      throw new ServiceError('Validation failed', 400, validationErrors);
+    }
+
+    // Verify customer exists
+    const customer = await this.customerRepo.findById(data.customerId);
+    if (!customer) {
+      throw new ServiceError('Customer not found', 404);
+    }
+
+    try {
+      const job = await this.jobRepo.create(data);
+      return job;
+    } catch (error) {
+      throw new ServiceError('Failed to create job', 500);
+    }
+  }
+
+  async updateJob(id: number, data: Partial<InsertJob>): Promise<JobWithCustomer> {
+    // Check if job exists
+    const existingJob = await this.jobRepo.findById(id);
+    if (!existingJob) {
+      throw new ServiceError('Job not found', 404);
+    }
+
+    // Verify customer exists if customerId is being changed
+    if (data.customerId && data.customerId !== existingJob.customerId) {
+      const customer = await this.customerRepo.findById(data.customerId);
+      if (!customer) {
+        throw new ServiceError('Customer not found', 404);
+      }
+    }
+
+    try {
+      const updatedJob = await this.jobRepo.update(id, data);
+      if (!updatedJob) {
+        throw new ServiceError('Failed to update job', 500);
+      }
+      return updatedJob;
+    } catch (error) {
+      throw new ServiceError('Failed to update job', 500);
+    }
+  }
+
+  async getJob(id: number): Promise<JobWithCustomer> {
+    const job = await this.jobRepo.findById(id);
+    if (!job) {
+      throw new ServiceError('Job not found', 404);
+    }
+    return job;
+  }
+
+  async getJobs(options: PaginationOptions): Promise<PaginatedResult<JobWithCustomer>> {
+    try {
+      return await this.jobRepo.findPaginated(options);
+    } catch (error) {
+      throw new ServiceError('Failed to fetch jobs', 500);
+    }
+  }
+
+  async deleteJob(id: number): Promise<void> {
+    const job = await this.jobRepo.findById(id);
+    if (!job) {
+      throw new ServiceError('Job not found', 404);
+    }
+
+    const success = await this.jobRepo.delete(id);
+    if (!success) {
+      throw new ServiceError('Failed to delete job', 500);
+    }
+  }
+
+  async getJobsByCustomer(customerId: number): Promise<JobWithCustomer[]> {
+    // Verify customer exists
+    const customer = await this.customerRepo.findById(customerId);
+    if (!customer) {
+      throw new ServiceError('Customer not found', 404);
+    }
+
+    try {
+      return await this.jobRepo.findByCustomerId(customerId);
+    } catch (error) {
+      throw new ServiceError('Failed to fetch customer jobs', 500);
+    }
+  }
+
+  async getTodaySchedule(): Promise<JobWithCustomer[]> {
+    try {
+      return await this.jobRepo.getTodaySchedule();
+    } catch (error) {
+      throw new ServiceError('Failed to fetch today\'s schedule', 500);
+    }
+  }
+
+  async getJobsByStatus(status: string): Promise<JobWithCustomer[]> {
+    try {
+      return await this.jobRepo.findByStatus(status);
+    } catch (error) {
+      throw new ServiceError('Failed to fetch jobs by status', 500);
+    }
+  }
+}
+Create server/services/index.ts:
+typescriptimport { CustomerService } from "./CustomerService";
+import { JobService } from "./JobService";
+import { customerRepository, jobRepository } from "../repositories";
+
+// Service instances with dependency injection
+export const customerService = new CustomerService(customerRepository);
+export const jobService = new JobService(jobRepository, customerRepository);
+
+// Export service classes and types
+export { CustomerService, JobService };
+export { ServiceError, type ValidationError } from "./BaseService";
+Create server/utils/errorHandler.ts:
+typescriptimport { Response } from "express";
+import { ServiceError, ValidationError } from "../services";
+
+export function handleServiceError(error: unknown, res: Response): void {
+  console.error('Service error:', error);
+
+  if (error instanceof ServiceError) {
+    const response: any = {
+      success: false,
+      error: error.message,
+    };
+
+    if (error.validationErrors) {
+      response.validationErrors = error.validationErrors;
+    }
+
+    res.status(error.statusCode).json(response);
+    return;
+  }
+
+  // Generic error fallback
+  res.status(500).json({
+    success: false,
+    error: 'Internal server error',
+  });
+}

@@ -1,0 +1,141 @@
+import React, { useState, useEffect, Suspense } from "react";
+import { Switch, Route, useLocation } from "wouter";
+import { queryClient } from "./lib/queryClient";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { Toaster } from "@/components/ui/toaster";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { UserProvider } from "@/contexts/user-context";
+import { AuthProvider } from "@/contexts/auth-context";
+import { ThemeProvider } from "@/contexts/theme-context";
+import { withProtection, ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import ErrorBoundary from "@/components/shared/ErrorBoundary";
+import PageLoader from "@/components/shared/PageLoader";
+import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
+import "@/lib/dev-auth"; // Ensure authentication state for development
+import NotFound from "@/pages/not-found";
+import Login from "@/pages/login";
+import Register from "@/pages/register";
+import Onboarding from "@/pages/onboarding";
+import Dashboard from "@/pages/dashboard";
+import Customers from "@/pages/customers";
+import Pipeline from "@/pages/pipeline";
+import Jobs from "@/pages/jobs";
+import Estimates from "@/pages/estimates";
+import Invoices from "@/pages/invoices";
+import Schedule from "@/pages/schedule-new";
+import Calendar from "@/pages/calendar-production";
+import Profile from "@/pages/profile";
+
+import SocialMedia from "@/pages/social-media";
+import Reports from "@/pages/reports";
+import Settings from "@/pages/settings";
+import Documents from "@/pages/documents";
+import Photos from "@/pages/photos";
+import WorkOrders from "@/pages/work-orders";
+import Employees from "@/pages/employees";
+import TimeTracking from "@/pages/time-tracking";
+import EstimatePreviewPage from "@/pages/estimate-preview";
+import FieldNotesToEstimate from "@/pages/field-notes-estimate";
+import MobileDashboard from "@/pages/mobile-dashboard";
+import MobileJobs from "@/pages/mobile-jobs";
+import MobileTimeTracking from "@/pages/mobile-time-tracking";
+// New navigation components
+import NavigationDrawer from "@/components/navigation/NavigationDrawer";
+import MobileTabBar from "@/components/navigation/MobileTabBar";
+/* ----------  Mock API (dev only) ------------- */
+import { initializeMockApi } from "@/lib/mock-api";
+import { isMockApiEnabled, setApiMode } from "@/lib/api-config";
+/* ----------  Dev-only Mock Mode Indicator ------------- */
+import { MockModeIndicator } from "@/components/shared/MockModeIndicator";
+/* ---------  Auth protected wrappers ------------- */
+const ProtectedDashboard = withProtection(Dashboard, {});
+const ProtectedCustomers = withProtection(Customers, {});
+const ProtectedPipeline = withProtection(Pipeline, {});
+const ProtectedJobs = withProtection(Jobs, {});
+const ProtectedEstimates = withProtection(Estimates, {});
+const ProtectedInvoices = withProtection(Invoices, {});
+const ProtectedSchedule = withProtection(Schedule, {});
+const ProtectedCalendar = withProtection(Calendar, {});
+const ProtectedProfile = withProtection(Profile, {});
+const ProtectedSocialMedia = withProtection(SocialMedia, {});
+const ProtectedReports = withProtection(Reports, {});
+const ProtectedSettings = withProtection(Settings, {});
+const ProtectedDocuments = withProtection(Documents, {});
+const ProtectedPhotos = withProtection(Photos, {});
+const ProtectedWorkOrders = withProtection(WorkOrders, {});
+const ProtectedEmployees = withProtection(Employees, {});
+const ProtectedTimeTracking = withProtection(TimeTracking, {});
+const ProtectedMobileDashboard = withProtection(MobileDashboard, {});
+const ProtectedMobileJobs = withProtection(MobileJobs, {});
+const ProtectedMobileTime = withProtection(MobileTimeTracking, {});
+const ProtectedEstimatePreview = withProtection(EstimatePreviewPage, {});
+const ProtectedFieldNotesEstimate = withProtection(FieldNotesToEstimate, {});
+
+/* ----------  V2 navigation ------------- */
+import V2Router from "@/components/navigation/v2-router";
+import V2NavigationWrapper, {
+  getIsV2NavigationEnabled,
+} from "@/components/navigation/v2-navigation";
+
+// Application initialization state
+function AppInitializer({ children }: { children: React.ReactNode }) {
+  const [isInitialized, setIsInitialized] = useState(false);
+  const [initError, setInitError] = useState<Error | null>(null);
+
+  useEffect(() => {
+    const initializeApp = async () => {
+      try {
+        // Initialize mock API in development mode
+        if (import.meta.env.DEV) {
+          try {
+            await initializeMockApi();
+            console.log("Mock API initialized successfully");
+          } catch (error) {
+            console.warn("Failed to initialize mock API:", error);
+            // Ensure we fall back to real API
+            setApiMode("live");
+          }
+        }
+        
+        // Any other app initialization can go here
+        
+        setIsInitialized(true);
+      } catch (error) {
+        console.error("Failed to initialize application:", error);
+        setInitError(error as Error);
+      }
+    };
+
+    initializeApp();
+  }, []);
+
+  if (initError) {
+    return (
+      <div className="flex h-screen items-center justify-center p-4">
+        <div className="max-w-md rounded-lg border border-red-200 bg-white p-6 shadow-md dark:border-red-900/30 dark:bg-slate-900">
+          <h2 className="mb-4 text-xl font-bold text-red-600 dark:text-red-400">
+            Application Initialization Failed
+          </h2>
+          <p className="mb-4 text-gray-700 dark:text-gray-300">
+            We encountered an error while loading the application:
+          </p>
+          <div className="mb-4 overflow-auto rounded bg-gray-50 p-3 text-sm dark:bg-gray-800">
+            <pre className="text-red-600 dark:text-red-400">{initError.message}</pre>
+          </div>
+          <button
+            onClick={() => window.location.reload()}
+            className="w-full rounded bg-primary py-2 text-white hover:bg-primary/80"
+          >
+            Reload Application
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isInitialized) {
+    return <LoadingSpinner variant="fullPage" size="lg" text="Initializing application..." />;
+  }
+
+  return <>{children}</>;
+}

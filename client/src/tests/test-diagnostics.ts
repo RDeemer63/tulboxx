@@ -1,0 +1,236 @@
+interface DiagnosticResult {
+  check: string;
+  status: 'PASS' | 'FAIL' | 'WARNING';
+  details: string;
+  fix?: string;
+}
+
+export class SystemDiagnostics {
+  private results: DiagnosticResult[] = [];
+
+  async runDiagnostics(): Promise<DiagnosticResult[]> {
+    console.log("🔍 Running System Diagnostics...\n");
+
+    await this.checkServerConnection();
+    await this.checkAuthentication();
+    await this.checkDatabaseConnection();
+    await this.checkAPIEndpoints();
+    await this.checkDataConsistency();
+    await this.checkCORSConfiguration();
+
+    this.printDiagnostics();
+    return this.results;
+  }
+
+  private async checkServerConnection(): Promise<void> {
+    console.log("🌐 Checking Server Connection...");
+    
+    try {
+      const response = await fetch('http://localhost:5000/api/dashboard/stats', {
+        method: 'GET',
+        headers: { 'Accept': 'application/json' }
+      });
+
+      if (response.ok) {
+        this.addResult('Server Connection', 'PASS', `Server responding on port 5000`);
+      } else {
+        this.addResult('Server Connection', 'FAIL', `Server returned ${response.status}`, 
+          'Check if server is running with npm run dev');
+      }
+    } catch (error) {
+      this.addResult('Server Connection', 'FAIL', `Connection failed: ${error}`,
+        'Start server with npm run dev');
+    }
+  }
+
+  private async checkAuthentication(): Promise<void> {
+    console.log("🔐 Checking Authentication...");
+    
+    try {
+      // Test demo authentication
+      const demoResponse = await fetch('http://localhost:5000/api/auth/demo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+
+      if (demoResponse.ok) {
+        const auth = await demoResponse.json();
+        if (auth.token) {
+          this.addResult('Demo Authentication', 'PASS', 'Demo login working');
+          
+          // Test authenticated endpoint
+          const testResponse = await fetch('http://localhost:5000/api/customers', {
+            headers: { 'Authorization': `Bearer ${auth.token}` }
+          });
+          
+          if (testResponse.ok) {
+            this.addResult('Authentication Flow', 'PASS', 'Token authentication working');
+          } else {
+            this.addResult('Authentication Flow', 'FAIL', `Authenticated request failed: ${testResponse.status}`,
+              'Check auth middleware configuration');
+          }
+        } else {
+          this.addResult('Demo Authentication', 'FAIL', 'Demo login missing token');
+        }
+      } else {
+        this.addResult('Demo Authentication', 'FAIL', `Demo login failed: ${demoResponse.status}`);
+      }
+    } catch (error) {
+      this.addResult('Authentication', 'FAIL', `Auth check failed: ${error}`);
+    }
+  }
+
+  private async checkDatabaseConnection(): Promise<void> {
+    console.log("💾 Checking Database Connection...");
+    
+    try {
+      const response = await fetch('http://localhost:5000/api/dashboard/stats-optimized');
+      if (response.ok) {
+        const stats = await response.json();
+        if (typeof stats.totalRevenue === 'number' || typeof stats.totalCustomers === 'number') {
+          this.addResult('Database Connection', 'PASS', 'Database queries working');
+        } else {
+          this.addResult('Database Connection', 'WARNING', 'Database response malformed');
+        }
+      } else {
+        this.addResult('Database Connection', 'FAIL', `Database query failed: ${response.status}`);
+      }
+    } catch (error) {
+      this.addResult('Database Connection', 'FAIL', `Database check failed: ${error}`);
+    }
+  }
+
+  private async checkAPIEndpoints(): Promise<void> {
+    console.log("🔌 Checking Critical API Endpoints...");
+    
+    const endpoints = [
+      { path: '/api/customers', name: 'Customers API' },
+      { path: '/api/jobs', name: 'Jobs API' },
+      { path: '/api/estimates', name: 'Estimates API' },
+      { path: '/api/invoices', name: 'Invoices API' },
+      { path: '/api/dashboard/stats-optimized', name: 'Dashboard Stats' },
+      { path: '/api/employees', name: 'Employees API' }
+    ];
+
+    for (const endpoint of endpoints) {
+      try {
+        const response = await fetch(`http://localhost:5000${endpoint.path}`);
+        if (response.ok) {
+          this.addResult(endpoint.name, 'PASS', `${endpoint.path} responding`);
+        } else if (response.status === 401) {
+          this.addResult(endpoint.name, 'WARNING', `${endpoint.path} requires authentication`);
+        } else {
+          this.addResult(endpoint.name, 'FAIL', `${endpoint.path} returned ${response.status}`);
+        }
+      } catch (error) {
+        this.addResult(endpoint.name, 'FAIL', `${endpoint.path} connection failed`);
+      }
+    }
+  }
+
+  private async checkDataConsistency(): Promise<void> {
+    console.log("📊 Checking Data Consistency...");
+    
+    try {
+      // Check if customers have valid data
+      const customersResponse = await fetch('http://localhost:5000/api/customers');
+      if (customersResponse.ok) {
+        const result = await customersResponse.json();
+        const customers = Array.isArray(result) ? result : result.data || [];
+        
+        if (customers.length > 0) {
+          const validCustomers = customers.filter((c: any) => c.firstName && c.lastName);
+          const validPercentage = (validCustomers.length / customers.length) * 100;
+          
+          if (validPercentage > 90) {
+            this.addResult('Customer Data Quality', 'PASS', `${validPercentage.toFixed(1)}% customers have valid data`);
+          } else {
+            this.addResult('Customer Data Quality', 'WARNING', `Only ${validPercentage.toFixed(1)}% customers have valid data`);
+          }
+        } else {
+          this.addResult('Customer Data Quality', 'WARNING', 'No customer data found');
+        }
+      }
+
+      // Check jobs-customer relationships
+      const jobsResponse = await fetch('http://localhost:5000/api/jobs');
+      if (jobsResponse.ok) {
+        const result = await jobsResponse.json();
+        const jobs = Array.isArray(result) ? result : result.data || [];
+        
+        if (jobs.length > 0) {
+          const jobsWithCustomers = jobs.filter((j: any) => j.customer && j.customer.firstName);
+          const relationshipPercentage = (jobsWithCustomers.length / jobs.length) * 100;
+          
+          if (relationshipPercentage > 90) {
+            this.addResult('Job-Customer Relationships', 'PASS', `${relationshipPercentage.toFixed(1)}% jobs have customer data`);
+          } else {
+            this.addResult('Job-Customer Relationships', 'FAIL', `Only ${relationshipPercentage.toFixed(1)}% jobs have customer data`,
+              'Check database foreign key relationships');
+          }
+        }
+      }
+    } catch (error) {
+      this.addResult('Data Consistency', 'FAIL', `Data consistency check failed: ${error}`);
+    }
+  }
+
+  private async checkCORSConfiguration(): Promise<void> {
+    console.log("🌐 Checking CORS Configuration...");
+    
+    try {
+      const response = await fetch('http://localhost:5000/api/dashboard/stats', {
+        method: 'OPTIONS'
+      });
+      
+      const corsHeaders = response.headers.get('Access-Control-Allow-Origin');
+      if (corsHeaders) {
+        this.addResult('CORS Configuration', 'PASS', 'CORS headers present');
+      } else {
+        this.addResult('CORS Configuration', 'WARNING', 'CORS headers may be missing');
+      }
+    } catch (error) {
+      this.addResult('CORS Configuration', 'WARNING', 'Could not verify CORS configuration');
+    }
+  }
+
+  private addResult(check: string, status: 'PASS' | 'FAIL' | 'WARNING', details: string, fix?: string): void {
+    this.results.push({ check, status, details, fix });
+    
+    const emoji = status === 'PASS' ? '✅' : status === 'FAIL' ? '❌' : '⚠️';
+    console.log(`  ${emoji} ${check}: ${details}`);
+    if (fix) console.log(`     💡 Fix: ${fix}`);
+  }
+
+  private printDiagnostics(): void {
+    const passed = this.results.filter(r => r.status === 'PASS').length;
+    const failed = this.results.filter(r => r.status === 'FAIL').length;
+    const warnings = this.results.filter(r => r.status === 'WARNING').length;
+    const total = this.results.length;
+
+    console.log("\n" + "=".repeat(60));
+    console.log("🔍 SYSTEM DIAGNOSTICS SUMMARY");
+    console.log("=".repeat(60));
+    console.log(`✅ Passed: ${passed}/${total}`);
+    console.log(`❌ Failed: ${failed}/${total}`);
+    console.log(`⚠️  Warnings: ${warnings}/${total}`);
+
+    if (failed > 0) {
+      console.log("\n🚨 CRITICAL ISSUES TO FIX:");
+      this.results.filter(r => r.status === 'FAIL').forEach(result => {
+        console.log(`❌ ${result.check}: ${result.details}`);
+        if (result.fix) console.log(`   💡 ${result.fix}`);
+      });
+    }
+
+    if (warnings > 0) {
+      console.log("\n⚠️  WARNINGS TO REVIEW:");
+      this.results.filter(r => r.status === 'WARNING').forEach(result => {
+        console.log(`⚠️  ${result.check}: ${result.details}`);
+        if (result.fix) console.log(`   💡 ${result.fix}`);
+      });
+    }
+
+    console.log(`\n${failed === 0 ? '🎉 SYSTEM READY FOR PRODUCTION!' : '🔧 ISSUES NEED FIXING BEFORE PRODUCTION'}`);
+  }
+}

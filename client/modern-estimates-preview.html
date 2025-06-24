@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Estimates Page - UI/UX Preview</title>
+    <style>
+        :root {
+            --color-primary: #0070D2; /* Salesforce Blue */
+            --color-primary-hover: #005BB5;
+            --color-accent: #FF8C00; /* Orange Accent */
+            --color-text-primary: #111827; /* Gray-900 */
+            --color-text-secondary: #374151; /* Gray-700 */
+            --color-text-muted: #6B7280; /* Gray-500 */
+            --color-border: #E5E7EB; /* Gray-200 */
+            --color-canvas: #F9FAFB; /* Gray-50 */
+            --color-card-bg: #FFFFFF;
+            --color-input-bg: #FFFFFF;
+            --color-success: #22C55E;
+            --color-warning: #F59E0B;
+            --color-danger: #EF4444;
+            --font-family-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+            --spacing-unit: 4px;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --border-radius: 0.375rem; /* 6px */
+        }
+
+        body {
+            margin: 0;
+            font-family: var(--font-family-sans);
+            background-color: var(--color-canvas);
+            color: var(--color-text-primary);
+            line-height: 1.5;
+            display: flex;
+            height: 100vh;
+            overflow: hidden; /* Prevent body scroll when drawer is "open" */
+        }
+
+        .page-container {
+            display: flex;
+            width: 100%;
+            height: 100%;
+        }
+
+        .main-content {
+            flex-grow: 1;
+            padding: calc(var(--spacing-unit) * 6); /* 24px */
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: calc(var(--spacing-unit) * 6);
+        }
+
+        .header h1 {
+            font-size: 1.875rem; /* 30px */
+            font-weight: 700;
+            color: var(--color-text-primary);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: calc(var(--spacing-unit) * 3); /* 12px */
+        }
+
+        .search-input {
+            padding: calc(var(--spacing-unit) * 2) calc(var(--spacing-unit) * 3);
+            border: 1px solid var(--color-border);
+            border-radius: var(--border-radius);
+            font-size: 0.875rem; /* 14px */
+            min-width: 250px;
+        }
+
+        .button {
+            padding: calc(var(--spacing-unit) * 2) calc(var(--spacing-unit) * 4);
+            border-radius: var(--border-radius);
+            font-size: 0.875rem; /* 14px */
+            font-weight: 500;
+            cursor: pointer;
+            border: 1px solid transparent;
+            display: inline-flex;
+            align-items: center;
+            gap: calc(var(--spacing-unit) * 1.5);
+            transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out, color 0.2s ease-in-out;
+        }
+
+        .button-primary {
+            background-color: var(--color-primary);
+            color: white;
+        }
+        .button-primary:hover {
+            background-color: var(--color-primary-hover);
+        }
+
+        .button-outline {
+            background-color: white;
+            color: var(--color-text-secondary);
+            border-color: var(--color-border);
+        }
+        .button-outline:hover {
+            background-color: var(--color-canvas);
+        }
+        
+        .icon {
+            width: 16px;
+            height: 16px;
+            stroke-width: 2;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: calc(var(--spacing-unit) * 4); /* 16px */
+            margin-bottom: calc(var(--spacing-unit) * 6);
+        }
+
+        .stat-card {
+            background-color: var(--color-card-bg);
+            padding: calc(var(--spacing-unit) * 4);
+            border-radius: var(--border-radius);
+            border: 1px solid var(--color-border);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .stat-card-title {
+            font-size: 0.875rem;
+            color: var(--color-text-secondary);
+            margin-bottom: calc(var(--spacing-unit) * 1);
+        }
+
+        .stat-card-value {
+            font-size: 1.5rem; /* 24px */
+            font-weight: 600;
+            color: var(--color-text-primary);
+        }
+        .stat-card-change {
+            font-size: 0.75rem; /* 12px */
+            margin-left: calc(var(--spacing-unit) * 1);
+        }
+        .stat-card-change.positive { color: var(--color-success); }
+        .stat-card-change.negative { color: var(--color-danger); }
+
+
+        .table-container {
+            background-color: var(--color-card-bg);
+            border-radius: var(--border-radius);
+            border: 1px solid var(--color-border);
+            box-shadow: var(--shadow-md);
+            overflow-x: auto; /* For smaller screens */
+            flex-grow: 1; /* Make table container fill remaining space */
+            display: flex; /* For inner scroll */
+            flex-direction: column; /* For inner scroll */
+        }
+        
+        .table-scroll-wrapper {
+            overflow-y: auto; /* Allow table body to scroll */
+            flex-grow: 1;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.875rem;
+        }
+
+        th, td {
+            padding: calc(var(--spacing-unit) * 3); /* 12px */
+            text-align: left;
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        thead th {
+            background-color: var(--color-canvas);
+            color: var(--color-text-secondary);
+            font-weight: 500;
+            position: sticky; /* Sticky header */
+            top: 0; /* Sticky header */
+            z-index: 10; /* Sticky header */
+        }
+        
+        tbody tr:hover {
+            background-color: var(--color-canvas);
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: calc(var(--spacing-unit) * 0.5) calc(var(--spacing-unit) * 2);
+            font-size: 0.75rem; /* 12px */
+            font-weight: 500;
+            border-radius: calc(var(--border-radius) * 2); /* Full pill shape */
+            border: 1px solid;
+        }
+        .badge-draft { background-color: #F3F4F6; color: #4B5563; border-color: #D1D5DB; } /* Gray */
+        .badge-sent { background-color: #DBEAFE; color: #1D4ED8; border-color: #93C5FD; } /* Blue */
+        .badge-approved { background-color: #DCFCE7; color: #166534; border-color: #86EFAC; } /* Green */
+        .badge-declined { background-color: #FEE2E2; color: #991B1B; border-color: #FCA5A5; } /* Red */
+        .badge-archived { background-color: #FEF3C7; color: #92400E; border-color: #FCD34D; } /* Yellow */
+
+        .pagination {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: calc(var(--spacing-unit) * 4) 0;
+            margin-top: calc(var(--spacing-unit) * 4);
+            border-top: 1px solid var(--color-border);
+        }
+        .pagination-info {
+            font-size: 0.875rem;
+            color: var(--color-text-secondary);
+        }
+        .pagination-buttons {
+            display: flex;
+            gap: calc(var(--spacing-unit) * 2);
+        }
+
+        /* Drawer Mockup Styles */
+        .drawer-mockup {
+            width: 60%; /* Adjust as needed, e.g., 800px or 60vw */
+            max-width: 900px;
+            height: 100%;
+            background-color: var(--color-card-bg);
+            border-left: 1px solid var(--color-border);
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            position: fixed; /* Or absolute if page-container is relative */
+            top: 0;
+            right: 0;
+            z-index: 50;
+        }
+
+        .drawer-header {
+            padding: calc(var(--spacing-unit) * 4);
+            border-bottom: 1px solid var(--color-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .drawer-header h2 {
+            font-size: 1.25rem; /* 20px */
+            font-weight: 600;
+        }
+        .drawer-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--color-border);
+            padding: 0 calc(var(--spacing-unit) * 4);
+        }
+        .drawer-tab {
+            padding: calc(var(--spacing-unit) * 3) calc(var(--spacing-unit) * 4);
+            cursor: pointer;
+            color: var(--color-text-secondary);
+            font-weight: 500;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -1px; /* Overlap border */
+        }
+        .drawer-tab.active {
+            color: var(--color-primary);
+            border-color: var(--color-primary);
+        }
+        .drawer-content {
+            padding: calc(var(--spacing-unit) * 6);
+            flex-grow: 1;
+            overflow-y: auto;
+        }
+        .drawer-footer {
+            padding: calc(var(--spacing-unit) * 4);
+            border-top: 1px solid var(--color-border);
+            display: flex;
+            justify-content: flex-end;
+            gap: calc(var(--spacing-unit) * 3);
+            background-color: var(--color-canvas);
+        }
+        
+        .form-group {
+            margin-bottom: calc(var(--spacing-unit) * 4);
+        }
+        .form-group label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--color-text-secondary);
+            margin-bottom: calc(var(--spacing-unit) * 1);
+        }
+        .form-group input[type="text"],
+        .form-group input[type="number"],
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: calc(var(--spacing-unit) * 2) calc(var(--spacing-unit) * 3);
+            border: 1px solid var(--color-border);
+            border-radius: var(--border-radius);
+            font-size: 0.875rem;
+            box-sizing: border-box;
+        }
+        .form-group textarea {
+            min-height: 80px;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <div class="main-content">
+            <header class="header">
+                <h1>Estimates</h1>
+                <div class="header-actions">
+                    <input type="search" placeholder="Search estimates..." class="search-input">
+                    <button class="button button-outline">
+                        <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
+                        Filter
+                    </button>
+                    <button class="button button-primary" id="new-estimate-btn">
+                        <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
+                        New Estimate
+                    </button>
+                </div>
+            </header>
+
+            <section class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-card-title">Total Estimates</div>
+                    <div class="stat-card-value">152</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-title">Drafts</div>
+                    <div class="stat-card-value">23</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-title">Sent</div>
+                    <div class="stat-card-value">68</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-title">Approved Value</div>
+                    <div class="stat-card-value">$125,800 <span class="stat-card-change positive">+5.2%</span></div>
+                </div>
+            </section>
+
+            <div class="table-container">
+                <div class="table-scroll-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Title</th>
+                                <th>Customer / Lead</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                                <th style="text-align: right;">Amount</th>
+                                <th style="text-align: center;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>EST-00123</td>
+                                <td>Kitchen Remodel Phase 1</td>
+                                <td>John Doe (C)</td>
+                                <td>Jun 15, 2025</td>
+                                <td><span class="badge badge-approved">Approved</span></td>
+                                <td style="text-align: right;">$15,250.00</td>
+                                <td style="text-align: center;">
+                                    <svg class="icon" style="display:inline-block; cursor:pointer;" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path></svg>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>EST-00122</td>
+                                <td>Fence Repair</td>
+                                <td>Jane Smith (L)</td>
+                                <td>Jun 14, 2025</td>
+                                <td><span class="badge badge-sent">Sent</span></td>
+                                <td style="text-align: right;">$875.50</td>
+                                <td style="text-align: center;">
+                                    <svg class="icon" style="display:inline-block; cursor:pointer;" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path></svg>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>EST-00121</td>
+                                <td>Landscaping Project Q3</td>
+                                <td>ACME Corp (C)</td>
+                                <td>Jun 12, 2025</td>
+                                <td><span class="badge badge-draft">Draft</span></td>
+                                <td style="text-align: right;">$22,000.00</td>
+                                <td style="text-align: center;">
+                                    <svg class="icon" style="display:inline-block; cursor:pointer;" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path></svg>
+                                </td>
+                            </tr>
+                             <tr>
+                                <td>EST-00120</td>
+                                <td>Bathroom Fixture Update</td>
+                                <td>Mike Williams (C)</td>
+                                <td>Jun 10, 2025</td>
+                                <td><span class="badge badge-declined">Declined</span></td>
+                                <td style="text-align: right;">$1,230.00</td>
+                                <td style="text-align: center;">
+                                    <svg class="icon" style="display:inline-block; cursor:pointer;" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path></svg>
+                                </td>
+                            </tr>
+                             <tr>
+                                <td>EST-00119</td>
+                                <td>Annual Maintenance Contract</td>
+                                <td>Sarah Brown (L)</td>
+                                <td>Jun 08, 2025</td>
+                                <td><span class="badge badge-archived">Archived</span></td>
+                                <td style="text-align: right;">$500.00</td>
+                                <td style="text-align: center;">
+                                    <svg class="icon" style="display:inline-block; cursor:pointer;" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path></svg>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="pagination">
+                <span class="pagination-info">Showing 1 to 5 of 152 estimates</span>
+                <div class="pagination-buttons">
+                    <button class="button button-outline">Previous</button>
+                    <button class="button button-outline">Next</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="drawer-mockup">
+            <div class="drawer-header">
+                <h2>Create New Estimate</h2>
+                <button class="button button-outline" style="padding: 8px;">
+                    <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <div class="drawer-tabs">
+                <span class="drawer-tab active">Details</span>
+                <span class="drawer-tab">Line Items</span>
+                <span class="drawer-tab">Settings</span>
+                <span class="drawer-tab">Preview</span>
+            </div>
+            <div class="drawer-content">
+                <div class="form-group">
+                    <label for="est-title">Estimate Title</label>
+                    <input type="text" id="est-title" value="New Kitchen Installation">
+                </div>
+                <div class="form-group">
+                    <label for="est-customer">Customer/Lead</label>
+                    <input type="text" id="est-customer" value="John Doe Construction">
+                </div>
+                <div class="form-group">
+                    <label for="est-type">Estimate Type</label>
+                    <select id="est-type" style="padding: calc(var(--spacing-unit) * 2) calc(var(--spacing-unit) * 3); width: 100%; border: 1px solid var(--color-border); border-radius: var(--border-radius);">
+                        <option value="detailed" selected>Detailed</option>
+                        <option value="simple">Simple</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="est-notes">Internal Notes</label>
+                    <textarea id="est-notes">Initial discussion about cabinet types and layout preferences.</textarea>
+                </div>
+                <p class="text-sm text-center text-slate-500">... More form fields for the active tab would appear here ...</p>
+            </div>
+            <div class="drawer-footer">
+                <button class="button button-outline">Cancel</button>
+                <button class="button button-primary">Save Draft</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

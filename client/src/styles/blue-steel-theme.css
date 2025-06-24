@@ -1,0 +1,101 @@
+@layer base {
+  /* 
+   * =================================================================
+   * TULBOXX CRM - BLUE STEEL THEME
+   * =================================================================
+   * This file defines the core CSS variables for the Blue Steel 
+   * design system, supporting both light and dark modes.
+   * 
+   * - Colors are defined in HSL format (without the `hsl()` wrapper)
+   *   to be consumed by Tailwind CSS's `hsl(var(--variable))` syntax.
+   * - Light mode is the default theme, defined in `:root`.
+   * - Dark mode overrides are defined in the `.dark` class selector.
+   * =================================================================
+   */
+
+  /* ------------------------------------------------------------------
+   * Light Mode (Default Theme)
+   * ------------------------------------------------------------------ */
+  :root {
+    /* --- Core Layout & Text --- */
+    --background: 0 0% 100%; /* White */
+    --foreground: 222.2 84% 4.9%; /* Near-black for text */
+
+    /* --- Cards & Popovers --- */
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+
+    /* --- Primary (Blue Steel) --- */
+    --primary: 210 100% 41%; /* #0070D2 */
+    --primary-foreground: 210 40% 98%; /* Almost white for text on primary */
+
+    /* --- Secondary --- */
+    --secondary: 210 40% 96.1%; /* Light gray */
+    --secondary-foreground: 222.2 47.4% 11.2%; /* Dark gray text */
+
+    /* --- Muted / Subtle --- */
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%; /* Medium gray text */
+
+    /* --- Accent (Action Orange) --- */
+    --accent: 33 100% 50%; /* #FF8C00 */
+    --accent-foreground: 222.2 47.4% 11.2%; /* Dark text for contrast on orange */
+
+    /* --- Destructive / Danger --- */
+    --destructive: 0 84.2% 60.2%; /* Red */
+    --destructive-foreground: 210 40% 98%;
+
+    /* --- Borders & Inputs --- */
+    --border: 214.3 31.8% 91.4%; /* Light gray border */
+    --input: 214.3 31.8% 91.4%;
+    --ring: 210 100% 41%; /* Focus ring color (same as primary) */
+
+    /* --- Sizing --- */
+    --radius: 0.5rem;
+  }
+
+  /* ------------------------------------------------------------------
+   * Dark Mode Theme
+   * ------------------------------------------------------------------ */
+  .dark {
+    /* --- Core Layout & Text --- */
+    --background: 222.2 84% 4.9%; /* Very dark blue/gray */
+    --foreground: 210 40% 98%; /* Light gray text */
+
+    /* --- Cards & Popovers --- */
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+
+    /* --- Primary (Blue Steel) --- */
+    --primary: 210 100% 41%;
+    --primary-foreground: 210 40% 98%;
+
+    /* --- Secondary --- */
+    --secondary: 217.2 32.6% 17.5%; /* Darker gray */
+    --secondary-foreground: 210 40% 98%;
+
+    /* --- Muted / Subtle --- */
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%; /* Lighter gray text */
+
+    /* --- Accent (Action Orange) --- */
+    --accent: 33 100% 50%;
+    --accent-foreground: 210 40% 98%; /* Light text for contrast on orange in dark mode */
+
+    /* --- Destructive / Danger --- */
+    --destructive: 0 62.8% 30.6%; /* Darker red */
+    --destructive-foreground: 210 40% 98%;
+
+    /* --- Borders & Inputs --- */
+    --border: 217.2 32.6% 17.5%; /* Dark gray border */
+    --input: 217.2 32.6% 17.5%;
+    --ring: 217.2 91.2% 59.8%; /* Brighter blue for focus ring in dark mode */
+
+    /* --- Sizing --- */
+    --radius: 0.5rem;
+  }
+}

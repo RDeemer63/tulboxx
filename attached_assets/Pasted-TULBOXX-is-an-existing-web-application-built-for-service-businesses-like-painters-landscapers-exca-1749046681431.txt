@@ -1,0 +1,59 @@
+TULBOXX is an existing web application built for service businesses like painters, landscapers, excavators, and contractors. Most core features — including estimating, invoicing, time tracking, and user account management — are already built.
+You are working within the current system, extending the existing Business Profile settings section — not recreating the app. The frontend is built with React/Next.js, and the backend uses [insert current DB: Firebase, Supabase, or Replit DB].
+Maintain all existing design patterns, styling, data architecture, and routing logic.
+
+🎯 Goal
+Enhance the current Business Profile section to:
+1. Improve AI personalization across estimates, invoices, posts, and messaging.
+2. Store trust-building business details (e.g., license number, certifications).
+3. Power auto-populated templates and footer data across the app.
+
+🧩 New Fields to Add (Grouped for Clarity)
+1. Basic Company Info (already present – just ensure formatting is clean)
+* Business Name
+* Owner/Manager Name
+* Email Address
+* Phone Number
+* Address (Street, City, State, ZIP)
+* Website URL
+2. Trust & Credentials
+These fields build customer trust and allow AI to mention qualifications automatically.
+* License Number(s) (text or multi-input)
+* Bonded & Insured (toggle + optional description)
+* Certifications (multi-tag or free text: e.g., EPA, ISA, ICPI)
+* Year Founded (numeric)
+* Business Structure (dropdown: Sole Prop, LLC, Corp, etc.)
+3. AI Personalization Settings
+These settings influence how the AI generates content, estimates, and messaging.
+* Preferred Estimate Style:
+    * Radio Options: [Flat Project Price] [Line Items] [Grouped by Category]
+* Service Area:
+    * Free text input (e.g., “Tri-County Area” or “Within 50 miles of Des Moines”)
+* Company Tagline or Motto (short text)
+* Short Company Bio (max 400 characters)
+4. Defaults & Legal Footers
+Used across estimates, invoices, contracts, and shared documents.
+* Legal Footer Text (textarea)
+* Terms & Conditions (textarea)
+* Default Signature Name (text)
+
+
+✅ Functional Requirements
+* Add this to the existing Settings > Business Profile page.
+* Form must be fully editable, with Save button triggering DB update.
+* Validate required fields (e.g., business name, email, city).
+* Support optional fields without blocking save.
+* Mobile responsive.
+* Use tooltips or (i) icons for educational hints (e.g., “What is a bonded contractor?”).
+
+🔗 Integrations for AI + Templates (Future Use)
+Ensure this saved data can be pulled into:
+* AI prompts for estimate scope, post captions, emails
+* Invoice footers and PDF exports
+* Company bios on customer-facing views
+
+🚀 Stretch Goal (Optional Phase 2)
+* Upload company logo
+* Upload PDF proof of insurance or license
+* Toggle visibility on client-facing documents per field
+* Generate “About Us” section from this data

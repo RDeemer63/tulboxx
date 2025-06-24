@@ -1,0 +1,515 @@
+interface TestResult {
+  feature: string;
+  test: string;
+  passed: boolean;
+  error?: string;
+  details?: string;
+}
+
+export class FeatureTester {
+  private results: TestResult[] = [];
+  private baseUrl = 'http://localhost:5000/api';
+  private authToken = 'demo-token'; // Use demo token for testing
+
+  // Add authentication headers to all requests
+  private async authenticatedFetch(url: string, options: RequestInit = {}): Promise<Response> {
+    return fetch(url, {
+      ...options,
+      headers: {
+        'Authorization': `Bearer ${this.authToken}`,
+        'Content-Type': 'application/json',
+        ...options.headers,
+      },
+    });
+  }
+
+  async runAllTests(): Promise<TestResult[]> {
+    console.log("🧪 Starting Frontend Feature Testing...\n");
+
+    await this.testCustomerWorkflows();
+    await this.testJobWorkflows();
+    await this.testEstimateWorkflows();
+    await this.testInvoiceWorkflows();
+    await this.testDashboardFeatures();
+    await this.testTimeTrackingWorkflows();
+    await this.testLeadPipelineWorkflows();
+
+    this.printResults();
+    return this.results;
+  }
+
+  private async testCustomerWorkflows(): Promise<void> {
+    console.log("👥 Testing Customer Management Workflows...");
+
+    // Test customer creation workflow
+    await this.testWorkflow(
+      "Customer Management",
+      "Create Customer with Full Data",
+      async () => {
+        const customerData = {
+          firstName: "Test",
+          lastName: "Customer",
+          email: "test@workflow.test",
+          phone: "(555) 123-4567",
+          address: "123 Test Street",
+          city: "Test City",
+          state: "TS",
+          zipCode: "12345",
+          propertyType: "residential",
+          preferredContactMethod: "phone",
+          notes: "Test customer for workflow validation"
+        };
+
+        const response = await this.authenticatedFetch(`${this.baseUrl}/customers`, {
+          method: 'POST',
+          body: JSON.stringify(customerData)
+        });
+
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        
+        const customer = await response.json();
+        
+        // Verify all fields were saved correctly
+        return customer.firstName === customerData.firstName &&
+               customer.email === customerData.email &&
+               customer.phone === customerData.phone &&
+               customer.address === customerData.address;
+      }
+    );
+
+    // Test customer search workflow
+    await this.testWorkflow(
+      "Customer Management",
+      "Search Customers with Pagination",
+      async () => {
+        const response = await fetch(`${this.baseUrl}/customers?page=1&limit=10&search=Test`);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        
+        const result = await response.json();
+        
+        // Verify pagination structure
+        return result.data && 
+               Array.isArray(result.data) &&
+               result.pagination &&
+               typeof result.pagination.total === 'number';
+      }
+    );
+
+    // Test customer update workflow
+    await this.testWorkflow(
+      "Customer Management",
+      "Update Customer Information",
+      async () => {
+        // Get first customer
+        const listResponse = await fetch(`${this.baseUrl}/customers?page=1&limit=1`);
+        const listResult = await listResponse.json();
+        
+        if (!listResult.data || listResult.data.length === 0) {
+          throw new Error("No customers found for update test");
+        }
+
+        const customer = listResult.data[0];
+        const updatedData = {
+          notes: `Updated at ${new Date().toISOString()}`
+        };
+
+        const updateResponse = await fetch(`${this.baseUrl}/customers/${customer.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(updatedData)
+        });
+
+        if (!updateResponse.ok) throw new Error(`HTTP ${updateResponse.status}`);
+        
+        const updatedCustomer = await updateResponse.json();
+        return updatedCustomer.notes === updatedData.notes;
+      }
+    );
+  }
+
+  private async testJobWorkflows(): Promise<void> {
+    console.log("🔧 Testing Job Management Workflows...");
+
+    // Test job creation workflow
+    await this.testWorkflow(
+      "Job Management",
+      "Create Job with Customer Assignment",
+      async () => {
+        // Get a customer first
+        const customersResponse = await fetch(`${this.baseUrl}/customers?page=1&limit=1`);
+        const customersResult = await customersResponse.json();
+        
+        if (!customersResult.data || customersResult.data.length === 0) {
+          throw new Error("No customers available for job creation");
+        }
+
+        const customer = customersResult.data[0];
+        const jobData = {
+          customerId: customer.id,
+          title: "Test Job Workflow",
+          description: "Testing job creation workflow",
+          serviceType: "maintenance",
+          status: "scheduled",
+          estimatedValue: "500.00",
+          scheduledDate: new Date().toISOString(),
+          notes: "Test job for workflow validation"
+        };
+
+        const response = await this.authenticatedFetch(`${this.baseUrl}/jobs`, {
+          method: 'POST',
+          body: JSON.stringify(jobData)
+        });
+
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        
+        const job = await response.json();
+        
+        // Verify job was created with customer relationship
+        return job.title === jobData.title &&
+               job.customerId === customer.id &&
+               job.customer &&
+               job.customer.firstName === customer.firstName;
+      }
+    );
+
+    // Test job status updates
+    await this.testWorkflow(
+      "Job Management",
+      "Update Job Status Workflow",
+      async () => {
+        const jobsResponse = await fetch(`${this.baseUrl}/jobs?page=1&limit=1`);
+        const jobsResult = await jobsResponse.json();
+        
+        if (!jobsResult.data || jobsResult.data.length === 0) {
+          throw new Error("No jobs found for status update test");
+        }
+
+        const job = jobsResult.data[0];
+        const statuses = ['scheduled', 'in_progress', 'completed'];
+        const newStatus = statuses.find(s => s !== job.status) || 'completed';
+
+        const updateResponse = await fetch(`${this.baseUrl}/jobs/${job.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: newStatus })
+        });
+
+        if (!updateResponse.ok) throw new Error(`HTTP ${updateResponse.status}`);
+        
+        const updatedJob = await updateResponse.json();
+        return updatedJob.status === newStatus;
+      }
+    );
+  }
+
+  private async testEstimateWorkflows(): Promise<void> {
+    console.log("📊 Testing Estimate Management Workflows...");
+
+    // Test estimate creation workflow
+    await this.testWorkflow(
+      "Estimate Management",
+      "Create Estimate with Line Items",
+      async () => {
+        const customersResponse = await fetch(`${this.baseUrl}/customers?page=1&limit=1`);
+        const customersResult = await customersResponse.json();
+        
+        if (!customersResult.data || customersResult.data.length === 0) {
+          throw new Error("No customers available for estimate creation");
+        }
+
+        const customer = customersResult.data[0];
+        const estimateData = {
+          customerId: customer.id,
+          title: "Test Estimate Workflow",
+          description: "Testing estimate creation workflow",
+          totalAmount: "1000.00",
+          status: "draft",
+          items: JSON.stringify([
+            { description: "Labor", quantity: 8, rate: 75.00, amount: 600.00 },
+            { description: "Materials", quantity: 1, rate: 400.00, amount: 400.00 }
+          ]),
+          validUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+        };
+
+        const response = await this.authenticatedFetch(`${this.baseUrl}/estimates`, {
+          method: 'POST',
+          body: JSON.stringify(estimateData)
+        });
+
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        
+        const estimate = await response.json();
+        
+        return estimate.title === estimateData.title &&
+               estimate.customerId === customer.id &&
+               estimate.totalAmount === estimateData.totalAmount;
+      }
+    );
+
+    // Test estimate status progression
+    await this.testWorkflow(
+      "Estimate Management",
+      "Estimate Status Progression",
+      async () => {
+        const estimatesResponse = await fetch(`${this.baseUrl}/estimates?page=1&limit=1`);
+        const estimatesResult = await estimatesResponse.json();
+        
+        if (!estimatesResult.data || estimatesResult.data.length === 0) {
+          throw new Error("No estimates found for status progression test");
+        }
+
+        const estimate = estimatesResult.data[0];
+        const statusProgression = ['draft', 'sent', 'accepted'];
+        let currentIndex = statusProgression.indexOf(estimate.status);
+        const nextStatus = statusProgression[Math.min(currentIndex + 1, statusProgression.length - 1)];
+
+        const updateResponse = await fetch(`${this.baseUrl}/estimates/${estimate.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            status: nextStatus,
+            sentAt: nextStatus === 'sent' ? new Date().toISOString() : undefined
+          })
+        });
+
+        if (!updateResponse.ok) throw new Error(`HTTP ${updateResponse.status}`);
+        
+        const updatedEstimate = await updateResponse.json();
+        return updatedEstimate.status === nextStatus;
+      }
+    );
+  }
+
+  private async testInvoiceWorkflows(): Promise<void> {
+    console.log("💰 Testing Invoice Management Workflows...");
+
+    // Test invoice creation workflow
+    await this.testWorkflow(
+      "Invoice Management",
+      "Create Invoice from Estimate",
+      async () => {
+        const customersResponse = await fetch(`${this.baseUrl}/customers?page=1&limit=1`);
+        const customersResult = await customersResponse.json();
+        
+        if (!customersResult.data || customersResult.data.length === 0) {
+          throw new Error("No customers available for invoice creation");
+        }
+
+        const customer = customersResult.data[0];
+        const invoiceData = {
+          customerId: customer.id,
+          title: "Test Invoice Workflow",
+          description: "Testing invoice creation workflow",
+          subtotal: "1000.00",
+          taxRate: "0.08",
+          taxAmount: "80.00", 
+          totalAmount: "1080.00",
+          status: "draft",
+          paymentTerms: "net_30",
+          dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+          items: JSON.stringify([
+            { description: "Service", quantity: 1, rate: 1000.00, amount: 1000.00 }
+          ])
+        };
+
+        const response = await this.authenticatedFetch(`${this.baseUrl}/invoices`, {
+          method: 'POST',
+          body: JSON.stringify(invoiceData)
+        });
+
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        
+        const invoice = await response.json();
+        
+        return invoice.title === invoiceData.title &&
+               invoice.customerId === customer.id &&
+               invoice.totalAmount === invoiceData.totalAmount &&
+               invoice.invoiceNumber; // Should auto-generate
+      }
+    );
+  }
+
+  private async testDashboardFeatures(): Promise<void> {
+    console.log("📈 Testing Dashboard Features...");
+
+    // Test optimized dashboard stats
+    await this.testWorkflow(
+      "Dashboard",
+      "Optimized Stats API Performance",
+      async () => {
+        const start = Date.now();
+        const response = await fetch(`${this.baseUrl}/dashboard/stats-optimized`);
+        const duration = Date.now() - start;
+
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        
+        const stats = await response.json();
+        
+        // Verify structure and performance
+        const hasRequiredFields = typeof stats.totalCustomers === 'number' &&
+                                 typeof stats.activeJobs === 'number' &&
+                                 typeof stats.pendingEstimates === 'number' &&
+                                 typeof stats.totalRevenue === 'number';
+
+        const performanceGood = duration < 200; // Relaxed target for frontend
+
+        return hasRequiredFields && performanceGood;
+      }
+    );
+
+    // Test recent jobs endpoint
+    await this.testWorkflow(
+      "Dashboard",
+      "Recent Jobs with Customer Data",
+      async () => {
+        const response = await fetch(`${this.baseUrl}/dashboard/recent-jobs?limit=5`);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        
+        const jobs = await response.json();
+        
+        return Array.isArray(jobs) &&
+               jobs.every(job => job.customer && job.customer.firstName);
+      }
+    );
+
+    // Test today's schedule
+    await this.testWorkflow(
+      "Dashboard",
+      "Today's Schedule Loading",
+      async () => {
+        const response = await fetch(`${this.baseUrl}/dashboard/today-schedule`);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        
+        const schedule = await response.json();
+        
+        return Array.isArray(schedule);
+      }
+    );
+  }
+
+  private async testTimeTrackingWorkflows(): Promise<void> {
+    console.log("⏰ Testing Time Tracking Workflows...");
+
+    // Test time entry creation
+    await this.testWorkflow(
+      "Time Tracking",
+      "Create Time Entry",
+      async () => {
+        const employeesResponse = await fetch(`${this.baseUrl}/employees`);
+        const employees = await employeesResponse.json();
+        
+        if (!employees || employees.length === 0) {
+          throw new Error("No employees available for time tracking test");
+        }
+
+        const employee = employees[0];
+        const timeEntryData = {
+          employeeId: employee.id,
+          clockInTime: new Date().toISOString(),
+          description: "Test time entry workflow",
+          clockInLatitude: "40.7128",
+          clockInLongitude: "-74.0060",
+          clockInAddress: "Test Location"
+        };
+
+        const response = await this.authenticatedFetch(`${this.baseUrl}/time-entries`, {
+          method: 'POST',
+          body: JSON.stringify(timeEntryData)
+        });
+
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        
+        const timeEntry = await response.json();
+        
+        return timeEntry.employeeId === employee.id &&
+               timeEntry.clockInTime &&
+               timeEntry.clockInAddress === timeEntryData.clockInAddress;
+      }
+    );
+  }
+
+  private async testLeadPipelineWorkflows(): Promise<void> {
+    console.log("🎯 Testing Lead Pipeline Workflows...");
+
+    // Test lead pipeline stages
+    await this.testWorkflow(
+      "Lead Pipeline",
+      "Load Pipeline Stages",
+      async () => {
+        const response = await fetch(`${this.baseUrl}/lead-pipeline/stages`);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        
+        const stages = await response.json();
+        
+        return Array.isArray(stages);
+      }
+    );
+
+    // Test lead pipeline entries
+    await this.testWorkflow(
+      "Lead Pipeline",
+      "Load Pipeline Entries",
+      async () => {
+        const response = await fetch(`${this.baseUrl}/lead-pipeline/entries`);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        
+        const entries = await response.json();
+        
+        return Array.isArray(entries);
+      }
+    );
+  }
+
+  private async testWorkflow(feature: string, test: string, workflow: () => Promise<boolean>): Promise<void> {
+    try {
+      const passed = await workflow();
+      this.results.push({
+        feature,
+        test,
+        passed,
+        details: passed ? "✅ Workflow completed successfully" : "❌ Workflow failed"
+      });
+      console.log(`  ${passed ? '✅' : '❌'} ${test}`);
+    } catch (error) {
+      this.results.push({
+        feature,
+        test,
+        passed: false,
+        error: error instanceof Error ? error.message : String(error)
+      });
+      console.log(`  ❌ ${test}: ERROR - ${error}`);
+    }
+  }
+
+  private printResults(): void {
+    const passed = this.results.filter(r => r.passed).length;
+    const total = this.results.length;
+    
+    console.log("\n" + "=".repeat(60));
+    console.log("🧪 FRONTEND FEATURE TEST RESULTS");
+    console.log("=".repeat(60));
+    console.log(`✅ Passed: ${passed}/${total} tests`);
+    console.log(`📊 Success Rate: ${((passed/total) * 100).toFixed(1)}%`);
+
+    // Group results by feature
+    const byFeature = this.results.reduce((acc, result) => {
+      if (!acc[result.feature]) acc[result.feature] = [];
+      acc[result.feature].push(result);
+      return acc;
+    }, {} as Record<string, TestResult[]>);
+
+    Object.entries(byFeature).forEach(([feature, tests]) => {
+      const featurePassed = tests.filter(t => t.passed).length;
+      console.log(`\n${feature}: ${featurePassed}/${tests.length} passed`);
+      
+      const failed = tests.filter(t => !t.passed);
+      if (failed.length > 0) {
+        failed.forEach(test => {
+          console.log(`  ❌ ${test.test}: ${test.error || 'Failed'}`);
+        });
+      }
+    });
+
+    console.log(`\n${passed === total ? '🎉 ALL WORKFLOWS PASSED!' : '⚠️  Some workflows need attention'}`);
+  }
+}

@@ -1,0 +1,36 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: tulboxx_postgres_dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: tulboxx_dev
+      POSTGRES_USER: postgres # Aligned with user's .env DATABASE_URL
+      POSTGRES_PASSWORD: postgres # Aligned with user's .env DATABASE_URL
+      PGDATA: /var/lib/postgresql/data/pgdata # Explicit data directory
+    ports:
+      - "5432:5432"
+    volumes:
+      # Persists data between container restarts/recreations
+      - tulboxx_postgres_dev_data:/var/lib/postgresql/data/pgdata
+      # Mounts a directory for initialization scripts.
+      # Create an 'init.sql' (or other .sh, .sql files) in './db/init-scripts'
+      # to initialize the database on first run.
+      - ./db/init-scripts:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d tulboxx_dev -q"] # Use correct user
+      interval: 10s # How often to run the check
+      timeout: 5s   # How long to wait for a response
+      retries: 5    # How many times to retry before marking as unhealthy
+      start_period: 20s # Grace period for service startup before health checks are enforced
+    networks:
+      - tulboxx_dev_network
+
+volumes:
+  tulboxx_postgres_dev_data: # Defines the named volume for data persistence
+
+networks:
+  tulboxx_dev_network:
+    driver: bridge

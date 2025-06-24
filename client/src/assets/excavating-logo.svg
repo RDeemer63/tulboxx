@@ -1,0 +1,20 @@
+<svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle -->
+  <circle cx="40" cy="40" r="38" fill="#1e40af" stroke="#3b82f6" stroke-width="2"/>
+  
+  <!-- Excavator bucket -->
+  <path d="M20 45 L25 40 L35 42 L38 48 L32 52 Z" fill="#fbbf24" stroke="#f59e0b" stroke-width="1"/>
+  
+  <!-- Excavator arm -->
+  <rect x="35" y="40" width="20" height="3" fill="#374151" rx="1"/>
+  <rect x="52" y="35" width="3" height="12" fill="#374151" rx="1"/>
+  
+  <!-- Excavator body -->
+  <rect x="55" y="42" width="12" height="8" fill="#fbbf24" stroke="#f59e0b" stroke-width="1" rx="2"/>
+  
+  <!-- Track -->
+  <ellipse cx="61" cy="52" rx="8" ry="3" fill="#374151"/>
+  
+  <!-- Company initials -->
+  <text x="40" y="28" font-family="Inter, sans-serif" font-size="14" font-weight="bold" fill="white" text-anchor="middle">DE</text>
+</svg>

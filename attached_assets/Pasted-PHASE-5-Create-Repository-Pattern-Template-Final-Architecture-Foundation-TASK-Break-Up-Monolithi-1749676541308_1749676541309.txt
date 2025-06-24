@@ -1,0 +1,353 @@
+PHASE 5: Create Repository Pattern Template (Final Architecture Foundation)
+TASK: Break Up Monolithic Storage Class with Clean Repository Pattern
+The current DatabaseStorage class is 2000+ lines and violates single responsibility principle. Create clean repository classes that AI can replicate for future features.
+Create server/repositories/BaseRepository.ts:
+typescriptimport { db } from "../db";
+import { eq, desc, and, gte, lte, count, sum, not, inArray, or, ilike } from "drizzle-orm";
+
+export interface PaginationOptions {
+  page: number;
+  limit: number;
+  search?: string;
+}
+
+export interface PaginatedResult<T> {
+  data: T[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrev: boolean;
+  };
+}
+
+export abstract class BaseRepository<T, InsertT> {
+  protected db = db;
+
+  protected createPaginationResult<DataT>(
+    data: DataT[], 
+    total: number, 
+    page: number, 
+    limit: number
+  ): PaginatedResult<DataT> {
+    return {
+      data,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+        hasNext: page * limit < total,
+        hasPrev: page > 1,
+      },
+    };
+  }
+
+  protected getOffset(page: number, limit: number): number {
+    return (page - 1) * limit;
+  }
+
+  // Abstract methods that child repositories must implement
+  abstract findById(id: number): Promise<T | undefined>;
+  abstract create(data: InsertT): Promise<T>;
+  abstract update(id: number, data: Partial<InsertT>): Promise<T | undefined>;
+  abstract delete(id: number): Promise<boolean>;
+  abstract findPaginated(options: PaginationOptions): Promise<PaginatedResult<T>>;
+}
+Create server/repositories/CustomerRepository.ts:
+typescriptimport { BaseRepository, PaginationOptions, PaginatedResult } from "./BaseRepository";
+import { customers, type Customer, type InsertCustomer } from "@shared/schema";
+import { eq, desc, or, ilike, count } from "drizzle-orm";
+
+export class CustomerRepository extends BaseRepository<Customer, InsertCustomer> {
+  
+  async findById(id: number): Promise<Customer | undefined> {
+    const [customer] = await this.db
+      .select()
+      .from(customers)
+      .where(eq(customers.id, id))
+      .limit(1);
+    
+    return customer || undefined;
+  }
+
+  async findByEmail(email: string): Promise<Customer | undefined> {
+    const [customer] = await this.db
+      .select()
+      .from(customers)
+      .where(eq(customers.email, email))
+      .limit(1);
+    
+    return customer || undefined;
+  }
+
+  async create(data: InsertCustomer): Promise<Customer> {
+    const [customer] = await this.db
+      .insert(customers)
+      .values(data)
+      .returning();
+    
+    return customer;
+  }
+
+  async update(id: number, data: Partial<InsertCustomer>): Promise<Customer | undefined> {
+    const [customer] = await this.db
+      .update(customers)
+      .set(data)
+      .where(eq(customers.id, id))
+      .returning();
+    
+    return customer || undefined;
+  }
+
+  async delete(id: number): Promise<boolean> {
+    const result = await this.db
+      .delete(customers)
+      .where(eq(customers.id, id));
+    
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  async findPaginated(options: PaginationOptions): Promise<PaginatedResult<Customer>> {
+    const { page, limit, search } = options;
+    const offset = this.getOffset(page, limit);
+
+    // Build query with optional search
+    let query = this.db.select().from(customers);
+    let countQuery = this.db.select({ count: count() }).from(customers);
+
+    if (search) {
+      const searchCondition = or(
+        ilike(customers.firstName, `%${search}%`),
+        ilike(customers.lastName, `%${search}%`),
+        ilike(customers.email, `%${search}%`),
+        ilike(customers.phone, `%${search}%`)
+      );
+      query = query.where(searchCondition);
+      countQuery = countQuery.where(searchCondition);
+    }
+
+    // Execute queries
+    const [data, [{ count: total }]] = await Promise.all([
+      query.orderBy(desc(customers.createdAt)).limit(limit).offset(offset),
+      countQuery
+    ]);
+
+    return this.createPaginationResult(data, total, page, limit);
+  }
+
+  async findByStatus(status: string): Promise<Customer[]> {
+    return await this.db
+      .select()
+      .from(customers)
+      .where(eq(customers.status, status))
+      .orderBy(desc(customers.createdAt));
+  }
+
+  async getTotalCount(): Promise<number> {
+    const [{ count: total }] = await this.db
+      .select({ count: count() })
+      .from(customers);
+    
+    return total;
+  }
+
+  async getRecentCustomers(limit: number = 10): Promise<Customer[]> {
+    return await this.db
+      .select()
+      .from(customers)
+      .orderBy(desc(customers.createdAt))
+      .limit(limit);
+  }
+}
+Create server/repositories/JobRepository.ts:
+typescriptimport { BaseRepository, PaginationOptions, PaginatedResult } from "./BaseRepository";
+import { jobs, customers, type Job, type Customer, type InsertJob } from "@shared/schema";
+import { eq, desc, or, ilike, count, and, gte, lte, inArray } from "drizzle-orm";
+
+export type JobWithCustomer = Job & { customer: Customer };
+
+export class JobRepository extends BaseRepository<JobWithCustomer, InsertJob> {
+  
+  async findById(id: number): Promise<JobWithCustomer | undefined> {
+    const [result] = await this.db
+      .select()
+      .from(jobs)
+      .leftJoin(customers, eq(jobs.customerId, customers.id))
+      .where(eq(jobs.id, id))
+      .limit(1);
+    
+    if (!result || !result.contacts) return undefined;
+    
+    return { ...result.jobs, customer: result.contacts };
+  }
+
+  async create(data: InsertJob): Promise<JobWithCustomer> {
+    // Process scheduled date if it's a string
+    const processedData = {
+      ...data,
+      scheduledDate: data.scheduledDate && typeof data.scheduledDate === 'string' 
+        ? new Date(data.scheduledDate) 
+        : data.scheduledDate
+    };
+
+    const [job] = await this.db
+      .insert(jobs)
+      .values(processedData)
+      .returning();
+    
+    // Get the job with customer data
+    const jobWithCustomer = await this.findById(job.id);
+    if (!jobWithCustomer) {
+      throw new Error('Failed to create job with customer data');
+    }
+    
+    return jobWithCustomer;
+  }
+
+  async update(id: number, data: Partial<InsertJob>): Promise<JobWithCustomer | undefined> {
+    const processedData = {
+      ...data,
+      scheduledDate: data.scheduledDate && typeof data.scheduledDate === 'string' 
+        ? new Date(data.scheduledDate) 
+        : data.scheduledDate
+    };
+
+    const [job] = await this.db
+      .update(jobs)
+      .set(processedData)
+      .where(eq(jobs.id, id))
+      .returning();
+    
+    if (!job) return undefined;
+    
+    return await this.findById(job.id);
+  }
+
+  async delete(id: number): Promise<boolean> {
+    const result = await this.db
+      .delete(jobs)
+      .where(eq(jobs.id, id));
+    
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  async findPaginated(options: PaginationOptions): Promise<PaginatedResult<JobWithCustomer>> {
+    const { page, limit, search } = options;
+    const offset = this.getOffset(page, limit);
+
+    let query = this.db
+      .select()
+      .from(jobs)
+      .leftJoin(customers, eq(jobs.customerId, customers.id));
+
+    let countQuery = this.db
+      .select({ count: count() })
+      .from(jobs);
+
+    if (search) {
+      const searchCondition = or(
+        ilike(jobs.title, `%${search}%`),
+        ilike(jobs.description, `%${search}%`),
+        ilike(customers.firstName, `%${search}%`),
+        ilike(customers.lastName, `%${search}%`)
+      );
+      query = query.where(searchCondition);
+      countQuery = countQuery
+        .leftJoin(customers, eq(jobs.customerId, customers.id))
+        .where(searchCondition);
+    }
+
+    const [rows, [{ count: total }]] = await Promise.all([
+      query.orderBy(desc(jobs.createdAt)).limit(limit).offset(offset),
+      countQuery
+    ]);
+
+    const data = rows
+      .filter(row => row.contacts !== null)
+      .map(row => ({ ...row.jobs, customer: row.contacts! }));
+
+    return this.createPaginationResult(data, total, page, limit);
+  }
+
+  async findByCustomerId(customerId: number): Promise<JobWithCustomer[]> {
+    const rows = await this.db
+      .select()
+      .from(jobs)
+      .leftJoin(customers, eq(jobs.customerId, customers.id))
+      .where(eq(jobs.customerId, customerId))
+      .orderBy(desc(jobs.createdAt));
+
+    return rows
+      .filter(row => row.contacts !== null)
+      .map(row => ({ ...row.jobs, customer: row.contacts! }));
+  }
+
+  async findByStatus(status: string): Promise<JobWithCustomer[]> {
+    const rows = await this.db
+      .select()
+      .from(jobs)
+      .leftJoin(customers, eq(jobs.customerId, customers.id))
+      .where(eq(jobs.status, status))
+      .orderBy(desc(jobs.createdAt));
+
+    return rows
+      .filter(row => row.contacts !== null)
+      .map(row => ({ ...row.jobs, customer: row.contacts! }));
+  }
+
+  async getTodaySchedule(): Promise<JobWithCustomer[]> {
+    const today = new Date();
+    const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
+
+    const rows = await this.db
+      .select()
+      .from(jobs)
+      .leftJoin(customers, eq(jobs.customerId, customers.id))
+      .where(and(
+        gte(jobs.scheduledDate, startOfDay),
+        lte(jobs.scheduledDate, endOfDay)
+      ))
+      .orderBy(jobs.scheduledDate);
+
+    return rows
+      .filter(row => row.contacts !== null)
+      .map(row => ({ ...row.jobs, customer: row.contacts! }));
+  }
+
+  async getActiveJobsCount(): Promise<number> {
+    const [{ count: total }] = await this.db
+      .select({ count: count() })
+      .from(jobs)
+      .where(inArray(jobs.status, ['scheduled', 'in_progress']));
+    
+    return total;
+  }
+
+  async getRecentJobs(limit: number = 10): Promise<JobWithCustomer[]> {
+    const rows = await this.db
+      .select()
+      .from(jobs)
+      .leftJoin(customers, eq(jobs.customerId, customers.id))
+      .orderBy(desc(jobs.createdAt))
+      .limit(limit);
+
+    return rows
+      .filter(row => row.contacts !== null)
+      .map(row => ({ ...row.jobs, customer: row.contacts! }));
+  }
+}
+Create server/repositories/index.ts:
+typescriptimport { CustomerRepository } from "./CustomerRepository";
+import { JobRepository } from "./JobRepository";
+
+// Repository instances - singleton pattern
+export const customerRepository = new CustomerRepository();
+export const jobRepository = new JobRepository();
+
+// Export repository classes for dependency injection
+export { CustomerRepository, JobRepository };
+export type { JobWithCustomer } from "./JobRepository";
